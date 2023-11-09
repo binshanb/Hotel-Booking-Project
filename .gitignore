@@ -1,0 +1,5 @@
+.env
+/node_modules/
+/venv/
+booking_project/accounts/migrations/
+booking_project/room_booking/migrations/
