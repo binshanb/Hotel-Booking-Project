@@ -8,7 +8,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import generics
 from rest_framework.generics import UpdateAPIView
-
+from django.http import JsonResponse
+from django.views import View
 # # Create your views here.
 
 
@@ -86,11 +87,27 @@ class RoomListView(generics.ListCreateAPIView):
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
 
-class RoomDetailsView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Room.objects.all()
-    serializer_class = RoomSerializer
+class RoomDetailsView(View):
+ def get(self, request, id):
+        try:
+            room = Room.objects.get(id=id)
+            room_data = {
+                'title': room.title,
+                'category':room.category,
+                'cover_image':room.cover_image,
+                'price_per_night':room.price_per_night,
+                'capacity':room.capacity,
+                'room_size':room.room_size,
+                'amenities':room.amenities,
+                'features':room.features,
 
 
+            }
+            return JsonResponse(room_data)
+        except Room.DoesNotExist:
+            return JsonResponse({'error': 'Room not found'}, status=404)
+
+ 
 class CreateRoomView(APIView):
     serializer_class = RoomSerializer
 
