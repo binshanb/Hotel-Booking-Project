@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { adminInstance } from '../../../utils/Axios';
 import { baseUrl } from '../../../utils/constants';
+import { useParams } from 'react-router-dom';
 
 function RoomListUser() {
   const [roomList, setRoomList] = useState([]);
+  const {id} = useParams
+  
 
   useEffect(() => {
     // Fetch the list of rooms and update state
@@ -26,7 +29,7 @@ function RoomListUser() {
               <img src={room.cover_image} alt={room.title} className="mb-4 h-32 w-64 object-cover rounded-lg mx-auto" />
               <h2 className="text-xl font-semibold text-black mb-4">{room.title}</h2>
               <h2 className="text-xl font-semibold text-black mb-4">{room.price_per_night}</h2>
-              <a href={`/room-detail/${room.id}/`} className="mt-4 px-4 py-2 bg-white text-black rounded-md block text-center group-hover:bg-blue-500 group-hover:text-white transition duration-300 ease-in-out">
+              <a href={`/room-detail/${id}/`} className="mt-4 px-4 py-2 bg-white text-black rounded-md block text-center group-hover:bg-blue-500 group-hover:text-white transition duration-300 ease-in-out">
                 View Details
               </a>
             </div>

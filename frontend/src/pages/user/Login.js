@@ -48,19 +48,13 @@ function UserLogin() {
       const res = await login({ email, password }).unwrap();
       console.log("res", res);
       dispatch(setCredentials({ ...res }));
-      if (res.status===200){
-        showToast("Login successful");
-        navigate("/");
-      
-    }else{
-      console.error('Login failed:');
-      showToast('Login failed: ');
-      navigate("/login");
-    }
+      showToast("Login successful");
+      navigate("/");
     } catch (err) {
       toast.error(err?.data || err?.error);
     }
   };
+
 
   const validate = (email, password) => {
     const errors = {};
@@ -73,7 +67,7 @@ function UserLogin() {
     }
     if (!password) {
       errors.password = "Password is required";
-    } else if (password.length < 6) {
+    } else if (password.length < 6) { 
       errors.password = "Invalid Password";
     } else if (password.length > 10) {
       errors.password = "Invalid Password";

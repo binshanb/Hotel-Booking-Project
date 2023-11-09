@@ -45,16 +45,15 @@ const Routers = () => {
          
       <Route path='/signup' element={<Register />} />
       <Route path='/login' element={<Login/>} />
-      
-        
+      <Route path='' element={<RouteUser/>} >
         <Route path="/" element={<HomePage/>}/>
-        <Route path='' element={<RouteUser/>} > 
+         
         <Route path='/user-profile' element={<UserProfile/>} />
         
         <Route path='/logout' element={<Logout/>} />
         <Route path='/categorylist' element={<CategoryList/>} />
         <Route path='/roomlistuser' element={<RoomListUser/>} />
-        <Route path='/services' element={<Services/>} />
+        <Route path='/services' element={<Services/>} /> 
         <Route path='/about' element={<About/>} />
         <Route path='/contact' element={<Contact/>} />
         <Route path='/room-detail/:id' element={<RoomDetail/>} />

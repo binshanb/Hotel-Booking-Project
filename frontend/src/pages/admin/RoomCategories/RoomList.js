@@ -121,7 +121,7 @@ const RoomList = () => {
       setSelectedCategory(response.data);
     })
     .catch((error) => {
-      console.error("Error fetching amenities", error);
+      console.error("Error fetching categories", error);
 });
     adminInstance.get("/room-amenities/")
     .then((response) => {
