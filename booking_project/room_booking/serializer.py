@@ -1,4 +1,4 @@
-from .models import Category,Room,RoomAmenity,RoomFeature
+from .models import Category,Room,RoomAmenity,RoomFeature,Booking
 from rest_framework import serializers
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -46,7 +46,11 @@ class RoomFeatureSerializer(serializers.ModelSerializer):
         model = RoomFeature
         fields = '__all__'
 
-
+class BookingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Booking
+        fields = '__all__'
+        
 
 
         

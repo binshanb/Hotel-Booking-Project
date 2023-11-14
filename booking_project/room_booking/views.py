@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404
-from .models import Category,Room,RoomAmenity,RoomFeature
-from .serializer import CategorySerializer,RoomSerializer,RoomAmenitySerializer,RoomFeatureSerializer
+from .models import Category,Room,RoomAmenity,RoomFeature,Booking
+from .serializer import CategorySerializer,RoomSerializer,RoomAmenitySerializer,RoomFeatureSerializer,BookingSerializer
 from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
@@ -10,6 +10,8 @@ from rest_framework import generics
 from rest_framework.generics import UpdateAPIView
 from django.http import JsonResponse
 from django.views import View
+import razorpay
+from decouple import config
 # # Create your views here.
 
 
@@ -87,25 +89,17 @@ class RoomListView(generics.ListCreateAPIView):
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
 
-class RoomDetailsView(View):
+class RoomListUserView(generics.ListCreateAPIView):
+    queryset = Room.objects.all()
+    serializer_class = RoomSerializer
+
+
+class RoomDetailsView(APIView):
  def get(self, request, id):
-        try:
-            room = Room.objects.get(id=id)
-            room_data = {
-                'title': room.title,
-                'category':room.category,
-                'cover_image':room.cover_image,
-                'price_per_night':room.price_per_night,
-                'capacity':room.capacity,
-                'room_size':room.room_size,
-                'amenities':room.amenities,
-                'features':room.features,
-
-
-            }
-            return JsonResponse(room_data)
-        except Room.DoesNotExist:
-            return JsonResponse({'error': 'Room not found'}, status=404)
+     room = Room.objects.get(id=id)
+     serializer = RoomSerializer([room],many = True)
+     print(room.cover_image,'oooooooooooooooo')
+     return Response(serializer.data,status= status.HTTP_200_OK) 
 
  
 class CreateRoomView(APIView):
@@ -238,6 +232,48 @@ class RoomFeatureView(generics.ListCreateAPIView):
 class EditRoomFeatureView(generics.RetrieveUpdateDestroyAPIView):
     queryset = RoomFeature.objects.all()
     serializer_class = RoomFeatureSerializer
+
+class CreateBookingView(generics.CreateAPIView):
+    queryset = Booking.objects.all()
+    serializer_class = BookingSerializer
+
+class BookingPageView(generics.ListAPIView):
+    queryset = Booking.objects.all()
+    serializer_class = BookingSerializer
+
+class BookingListView(generics.ListAPIView):
+    queryset = Booking.objects.all()
+    serializer_class = BookingSerializer
+
+class RazorpayOrderView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        try:
+            booking_id = request.data.get('bookingId')
+            amount = request.data.get('amount')
+
+            # Initialize Razorpay client with environment variables
+            client = razorpay.Client(auth=(config('RAZORPAY_KEY_ID'), config('RAZORPAY_KEY_SECRET')))
+            
+            # Create a Razorpay order
+            order_params = {
+                'amount': float(amount) * 100,  # Amount in paise
+                'currency': 'INR',
+                'receipt': 'receipt_id',  # Replace with a unique identifier for the order
+                'payment_capture': 1,
+                'notes': {
+                    'booking_id': booking_id,
+                    'key': config('RAZORPAY_KEY_ID'),
+                },
+            }
+
+            order = client.order.create(data=order_params)
+
+            return Response(order, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 
 
 

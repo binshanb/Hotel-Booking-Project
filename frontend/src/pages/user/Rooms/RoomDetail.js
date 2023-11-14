@@ -1,81 +1,97 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { adminInstance } from '../../../utils/Axios';
 import { baseUrl } from '../../../utils/constants';
+import { useNavigate } from 'react-router-dom';
 
 function RoomDetail() {
-  const [roomData, setRoomData] = useState(null);
+  const [roomData, setRoomData] = useState([]);
+  const[isRoomData, setIsRoomData] = useState(false)
   const { id } = useParams();
+  const navigate = useNavigate();
+ 
 
-  const [isLoading, setIsLoading] = useState(true);
+  
 
   useEffect(() => {
     // Fetch the room detail for the specified room ID
     adminInstance
-      .get (`${baseUrl}/api/admin/room-list/${id}/`)
+      .get(`${baseUrl}/api/booking/room-detail/${id}/`)
       .then((response) => response.data)
       .then((data) => {
-        setRoomData(data);
-        setIsLoading(false);
+        console.log('Room data:',data);
+        setRoomData(data[0]);
+        setIsRoomData(true);
       })
       .catch((error) => {
         console.error('Error fetching room detail:', error);
-        setIsLoading(false);
       });
   }, [id]);
 
-  if (isLoading) {
-    return <div>Loading...</div>; // Show a loading indicator
+  const handleRooms=()=>{
+    navigate('/roomlistuser')
   }
-
-  if (!Array.isArray(roomData) || roomData.length === 0) {
-    return <div>Error: Room data not available.</div>; // Show an error message
+  const handleBooking=()=>{
+    navigate('/add-booking')
   }
+  // if (isLoading) {
+  //   return <div>Loading...</div>; // Show a loading indicator
+  // }
 
+  // if (!Array.isArray(roomData) || roomData.length === 0) {
+  //   return <div>Error: Room data not available.</div>; // Show an error message
+  // }
+  console.log("isRoomData:", isRoomData);
   return (
     <div className="room-container p-4">
       <div className="text-center my-5">
         <h1 className="text-4xl font-bold text-gray-800">Room Detail</h1>
         <div className="w-16 h-1 bg-blue-500 mx-auto mt-2"></div>
       </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {roomData.map((room, index) => (
-          <div key={room.id} className="mb-4">
-            <div className={`p-6 ${room.backgroundColor} rounded-lg shadow-md border border-gray-300 relative group`}>
-              <img src={room.cover_image} alt={room.title} className="mb-4 h-32 w-64 object-cover rounded-lg mx-auto" />
-              <h2 className="text-xl font-semibold text-black mb-4">{room.title}</h2>
-              <h3 className="text-xl font-semibold text-black mb-4">{room.price_per_night}</h3>
-
-              <div className="container my-5 align-items-center justify-content">
-                <h1 title="Description">Description</h1>
-
-                <div className="row">
-                  <div className="col-md-6 m-auto">
-                    <h6>Details</h6>
-                    <p className="text-justify" style={{ width: "80%" }}>
-                      jjhdksdfhfijkf
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <p>Capacity: {room.capacity}</p>
-              <p>Room Size: {room.room_size}</p>
-              <p>Amenities: {room.amenities.join(', ')}</p>
-              <p>Features: {room.features.join(', ')}</p>
+      {isRoomData && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 justify-center">
+          <div className="mb-4">
+            <div className="p-6 rounded-lg shadow-md border border-gray-300 bg-white relative group">
+              <img
+                src={`${baseUrl}${roomData.cover_image}`}
+                alt={roomData.title}
+                className="mb-4 h-64 w-full object-cover rounded-lg"
+              />
+              <h2 className="text-2xl font-semibold text-black mb-2">{roomData.title}</h2>
+              <p className="text-lg text-gray-700 mb-4">
+                Category: {roomData.category ? roomData.category.category_name : 'Not available'}
+              </p>
+              <h3 className="text-xl font-semibold text-black mb-2">Price Per Day: ₹{roomData.price_per_night}</h3>
+              <p className="text-lg text-gray-900 mb-4">Description: {roomData.description}</p>
+              <p className="text-lg text-gray-900 mb-4">Capacity: Maximum {roomData.capacity} people</p>
+              <p className="text-lg text-gray-900 mb-4">Room Size: {roomData.room_size} sq.ft</p>
+              <p className="text-lg text-gray-900 mb-4">Meals Included</p>
+              <p className="text-lg text-gray-900 mb-4">
+                Amenities: {roomData.amenities ? roomData.amenities.map(amenity => amenity.name).join(', ') : 'Not available'}
+              </p>
+              <p className="text-lg text-gray-900 mb-4">
+                Features: {roomData.features ? roomData.features.map(feature => feature.name).join(', ') : 'Not available'}
+              </p>
             </div>
           </div>
-        ))}
-        <Link to={`/bookroom/${id}`} className="mt-4 px-4 py-2 bg-white text-black rounded-md block text-center">
-          Book Now
-        </Link>
-
-        <Link to="/roomlistuser" className="mt-4 px-4 py-2 bg-white text-black rounded-md block text-center">
-          Back to Room List
-        </Link>
-      </div>
+          <div className="flex flex-col items-center justify-center">
+            <button onClick={handleBooking}
+    
+              className="mt-4 px-6 py-3 bg-blue-500 text-white rounded-md text-center hover:bg-blue-600 transition duration-300 ease-in-out"
+            >
+              Book Now
+            </button>
+            <button onClick={handleRooms}
+    
+              className="mt-4 px-6 py-3 bg-blue-300 text-black rounded-md text-center border border-gray-500 hover:bg-gray-200 transition duration-300 ease-in-out"
+            >
+              Back to Room List
+            </button>
+          </div>
+        </div>
+      )}
     </div>
+      
   );
 }
 

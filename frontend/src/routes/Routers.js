@@ -20,23 +20,33 @@ import RoomCategory from '../pages/admin/RoomCategories/RoomCategory'
 import RoomList from '../pages/admin/RoomCategories/RoomList'
 import RoomListUser from '../pages/user/Rooms/RoomListUser'
 import AmenitiesList from '../pages/admin/Amenities/AmenitiesList'
+import RoomDetail from '../pages/user/Rooms/RoomDetail'
+import BookingForm from '../components/Bookings/BookingForm'
+import BookingPage from '../pages/user/Bookings/BookingPage'
+import BookingList from '../pages/admin/Booking/BookingList'
+import BookingPayment from '../pages/user/Bookings/BookingPayment'
+
+
+
+
+
+
+
+
+
+// import CategoryCreate from '../pages/admin/RoomCategories/CreateCategory'
 // import AddCategory from '../pages/admin/RoomCategories/AddCategory'
 // import EditCategory from '../pages/admin/RoomCategories/EditCategory'
 // import RoomListUser from '../pages/user/Rooms/RoomListUser'
 // import AddRoom from '../pages/admin/RoomCategories/AddRoom'
 
 
-import RoomDetail from '../pages/user/Rooms/RoomDetail'
-
-
-
-// import CategoryCreate from '../pages/admin/RoomCategories/CreateCategory'
-
 
 
 const Routers = () => {
   return (
 
+    
   
     <Routes>
 
@@ -51,12 +61,28 @@ const Routers = () => {
         <Route path='/user-profile' element={<UserProfile/>} />
         
         <Route path='/logout' element={<Logout/>} />
+
+         {/* <-----------Rooms------------> */}
+
         <Route path='/categorylist' element={<CategoryList/>} />
         <Route path='/roomlistuser' element={<RoomListUser/>} />
         <Route path='/services' element={<Services/>} /> 
         <Route path='/about' element={<About/>} />
         <Route path='/contact' element={<Contact/>} />
         <Route path='/room-detail/:id' element={<RoomDetail/>} />
+
+        {/* <-----------Booking------------> */}
+
+        <Route path='/add-booking' element={<BookingForm />} />
+        <Route path='/booking-page' element={<BookingPage/>} />
+        <Route path='/booking-payment' element={<BookingPayment/>} />
+        
+        
+
+
+
+    
+
         
     
     </Route>
@@ -83,6 +109,8 @@ const Routers = () => {
         <Route path='/admin/room-category' element={<RoomCategory/>} />
         <Route path='/admin/room-list' element={<RoomList/>} />
         <Route path='/admin/room-amenities' element={<AmenitiesList/>} />
+
+        <Route path='/admin/booking-list'    element= {<BookingList/>} />
       </Route>
       
 

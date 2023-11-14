@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import  UserRegistrationView,GetRoutesView,UserProfileView   #UserTokenView AdminTokenObtainPairView
+from .views import  UserRegistrationView,GetRoutesView,UserProfileView,AccountUserDetailView  #UserTokenView AdminTokenObtainPairView
 from .views import CustomTokenObtainPairView, CustomTokenRefreshView,UserListView,BlockUnblockUserView
     
 
@@ -13,6 +13,7 @@ urlpatterns = [
     path('admin/users/', UserListView.as_view(), name='user-list'),
     path('admin/block-unblock/<int:pk>/', BlockUnblockUserView.as_view(), name='block-unblock-user'),
     path('user/user-profile/', UserProfileView.as_view(), name='user-profile'),
+    path('user/user-detail/<int:pk>/', AccountUserDetailView.as_view(), name='user-detail'),
     
 ]
     

@@ -112,5 +112,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     
 
+    
+
 #<--------------Admin Side End------------------------->
 

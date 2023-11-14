@@ -17,16 +17,10 @@ const columns = [
   { field: "category__category_name", headerName: "Category", width: 130 },
   { field: "price_per_night", headerName: "Price Per Night", width: 150 },
   { field: "room_slug", headerName: "Room Slug", width: 130 },
-  {
-    field: "is_booked",
-    headerName: "Is Booked",
-    width: 120,
-    renderCell: (params) => (
-      params.value ? "Yes" : "No"
-    ),
-  },
+
   { field: "capacity", headerName: "Capacity", width: 120 },
   { field: "room_size", headerName: "Room Size", width: 120 },
+  { field: "description", headerName: "Description", width: 120 },
   {
     field: "cover_image",
     headerName: "Cover Image",
@@ -100,9 +94,11 @@ const RoomList = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedRooms, setSelectedRooms] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [description,setDescription] = useState("");
+  const [categories, setCategories] = useState([]);
   const [amenities, setAmenities] = useState([]);
   const [features, setFeatures] = useState([]);
+  
 
   const fetchRooms = async () => {
     try {
@@ -118,7 +114,7 @@ const RoomList = () => {
 
     adminInstance.get("/room-category/")
     .then((response) => {
-      setSelectedCategory(response.data);
+      setCategories(response.data);
     })
     .catch((error) => {
       console.error("Error fetching categories", error);
@@ -251,6 +247,9 @@ const RoomList = () => {
           isOpen={isAddModalOpen}
           onRequestClose={() => setIsAddModalOpen(false)}
           onAddRoom={handleAddRooms}
+          categories={categories} 
+          amenities={amenities}
+          features={features}
         />
         {selectedRooms && (
    <EditRoomModal
@@ -260,7 +259,7 @@ const RoomList = () => {
    roomData={selectedRooms}
    amenities={amenities} // Make sure to pass amenities here
    features={features}
-   categories={selectedCategory}
+   categories={categories}
     // Make sure to pass features here
  />
         )}

@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Modal from "react-modal";
 import { FaTimes, FaTrash, FaImage } from "react-icons/fa";
 import { FcAddImage } from "react-icons/fc";
 import { toast } from 'react-toastify';
 
-
+Modal.setAppElement('#root');
 
 export default function AddRoomModal({
   isOpen,
@@ -17,52 +17,13 @@ export default function AddRoomModal({
   const [formError, setFormError] = useState({});
   const [roomName, setRoomName] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [pricePerNight, setPricePerNight] = useState("");
   const [capacity, setCapacity] = useState("");
   const [roomSize, setRoomSize] = useState("");
+  const [description, setDescription] = useState("");
   const [selectedAmenities, setSelectedAmenities] = useState([]);
   const [selectedFeatures, setSelectedFeatures] = useState([]);
-  // Define handleAmenitiesChange function
-  const handleAmenitiesChange = (e, amenityId) => {
-    const updatedAmenities = [...selectedAmenities];
-    const amenityIdStr = amenityId.toString();
-
-    if (e.target.checked) {
-      // Add the amenity to the list
-      updatedAmenities.push(amenityIdStr);
-    } else {
-      // Remove the amenity from the list
-      const index = updatedAmenities.indexOf(amenityIdStr);
-      if (index > -1) {
-        updatedAmenities.splice(index, 1);
-      }
-    }
-
-    setSelectedAmenities(updatedAmenities);
-  };
-
-  // Define handleFeaturesChange function
-  const handleFeaturesChange = (e, featureId) => {
-    const updatedFeatures = [...selectedFeatures];
-    const featureIdStr = featureId.toString();
-
-    if (e.target.checked) {
-      // Add the feature to the list
-      updatedFeatures.push(featureIdStr);
-    } else {
-      // Remove the feature from the list
-      const index = updatedFeatures.indexOf(featureIdStr);
-      if (index > -1) {
-        updatedFeatures.splice(index, 1);
-      }
-    }
-
-    setSelectedFeatures(updatedFeatures);
-  };
-
-  
-
 
   const handleAddRoom = async (e) => {
     e.preventDefault();
@@ -74,12 +35,14 @@ export default function AddRoomModal({
         const roomData = new FormData();
         roomData.append('title', roomName);
         roomData.append('cover_image', selectedImage);
-        roomData.append('category', selectedCategory);
+        roomData.append('category.category_name', selectedCategory);
         roomData.append('price_per_night', pricePerNight);
         roomData.append('capacity', capacity);
         roomData.append('room_size', roomSize);
-        selectedAmenities.forEach((amenity) => roomData.append('amenities', amenity));
-        selectedFeatures.forEach((feature) => roomData.append('features', feature));
+        roomData.append('description', description);
+
+        selectedAmenities.forEach((amenity) => roomData.append('amenities.name', amenity));
+        selectedFeatures.forEach((feature) => roomData.append('features.name', feature));
 
         const response = await onAddRoom(roomData, {
           headers: {
@@ -91,10 +54,12 @@ export default function AddRoomModal({
           setRoomName("");
           setFormError({});
           setSelectedImage(null);
-          setSelectedCategory([]);
+          setSelectedCategory("");
           setPricePerNight("");
           setCapacity("");
           setRoomSize("");
+          setDescription("");
+
           setSelectedAmenities([]);
           setSelectedFeatures([]);
           onRequestClose();
@@ -146,8 +111,11 @@ export default function AddRoomModal({
     }
 
     return errors;
-  };
 
+  if (!description) {
+    errors.description = "Description is required";
+  }
+};
   const showToast = (message, type = 'error') => {
     toast[type](message, {
       position: toast.POSITION.TOP_RIGHT,
@@ -158,6 +126,32 @@ export default function AddRoomModal({
       draggable: true,
       progress: undefined,
     });
+  };
+
+  const handleAmenitiesChange = (e, amenityId) => {
+    const isChecked = e.target.checked;
+    if (isChecked) {
+      // Handle adding the amenity to the selectedAmenities state
+      setSelectedAmenities((prevAmenities) => [...prevAmenities, amenityId]);
+    } else {
+      // Handle removing the amenity from the selectedAmenities state
+      setSelectedAmenities((prevAmenities) =>
+        prevAmenities.filter((id) => id !== amenityId)
+      );
+    }
+  };
+
+  const handleFeaturesChange = (e, featureId) => {
+    const isChecked = e.target.checked;
+    if (isChecked) {
+      // Handle adding the feature to the selectedFeatures state
+      setSelectedFeatures((prevFeatures) => [...prevFeatures, featureId]);
+    } else {
+      // Handle removing the feature from the selectedFeatures state
+      setSelectedFeatures((prevFeatures) =>
+        prevFeatures.filter((id) => id !== featureId)
+      );
+    }
   };
 
   return (
@@ -192,7 +186,7 @@ export default function AddRoomModal({
             onChange={(e) => setSelectedCategory(e.target.value)}
           >
             <option value="">Select Category</option>
-            {categories && categories.map((category) => (
+            {categories.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.category_name}
               </option>
@@ -235,21 +229,32 @@ export default function AddRoomModal({
         <span className="text-red-500">
           {formError?.roomSize ? formError.roomSize : ""}
         </span>
-
+        <input
+  type="text"
+  placeholder="Description"
+  value={description}
+  onChange={(e) => setDescription(e.target.value)}
+  className="w-full border rounded p-2 mt-2"
+/>
+<span className="text-red-500">
+  {formError?.description ? formError.description : ""}
+</span>
+ 
         {/* Amenities and Features Selection */}
         <div className="amenities-select mt-2">
           <label>Amenities</label>
-          {amenities && amenities.map((amenity) => (
-            <label key={amenity.id}>
-              <input
-                type="checkbox"
-                value={amenity.id}
-                checked={selectedAmenities.includes(amenity.id)}
-                onChange={(e) => handleAmenitiesChange(e, amenity.id)}
-              />
-              {amenity.amenity_name}
-            </label>
-          ))}
+          {Array.isArray(amenities) &&
+            amenities.map((amenity) => (
+              <label key={amenity.id}>
+                <input
+                  type="checkbox"
+                  value={amenity.id}
+                  checked={selectedAmenities.includes(amenity.id)}
+                  onChange={(e) => handleAmenitiesChange(e, amenity.id)}
+                />
+                {amenity.name}
+              </label>
+            ))}
           <span className="text-red-500">
             {formError?.selectedAmenities ? formError.selectedAmenities : ""}
           </span>
@@ -257,17 +262,18 @@ export default function AddRoomModal({
 
         <div className="features-select mt-2">
           <label>Features</label>
-          {features && features.map((feature) => (
-            <label key={feature.id}>
-              <input
-                type="checkbox"
-                value={feature.id}
-                checked={selectedFeatures.includes(feature.id)}
-                onChange={(e) => handleFeaturesChange(e, feature.id)}
-              />
-              {feature.feature_name}
-            </label>
-          ))}
+          {Array.isArray(features) &&
+            features.map((feature) => (
+              <label key={feature.id}>
+                <input
+                  type="checkbox"
+                  value={feature.id}
+                  checked={selectedFeatures.includes(feature.id)}
+                  onChange={(e) => handleFeaturesChange(e, feature.id)}
+                />
+                {feature.feature_name}
+              </label>
+            ))}
           <span className="text-red-500">
             {formError?.selectedFeatures ? formError.selectedFeatures : ""}
           </span>
@@ -277,7 +283,7 @@ export default function AddRoomModal({
           {selectedImage ? (
             <div className="image-preview-container">
               <img
-                src={URL.createObjectURL(selectedImage)}
+                src={typeof selectedImage === 'string' ? selectedImage : URL.createObjectURL(selectedImage)}
                 alt="Selected Image"
                 className="image-preview"
               />

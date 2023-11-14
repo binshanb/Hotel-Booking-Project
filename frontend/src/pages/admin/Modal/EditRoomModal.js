@@ -11,7 +11,7 @@ export default function EditRoomModal({
   onRequestClose,
   onEditRoom,   
   roomData,
-   categories, // Pass a list of categories to select from
+  categories, // Pass a list of categories to select from
   amenities, // Pass a list of amenities to select from
   features, // Pass a list of features to select from
 }) {

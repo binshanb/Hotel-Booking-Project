@@ -12,7 +12,9 @@ urlpatterns = [
     path('admin/add-room/', CreateRoomView.as_view(), name='add-room'),
 
     path('admin/room-list/', RoomListView.as_view(), name='room-list'),
-    path('admin/room-list/<int:id>/', RoomDetailsView.as_view(), name='room-detail'),
+    path('room-detail/<int:id>/', RoomDetailsView.as_view(), name='room-detail'),
+    path('roomlistuser/', RoomListUserView.as_view(), name='room-list-user'),
+
     
     path('admin/room-list/block-unblock/<int:pk>/',BlockUnblockRoomView.as_view(), name='block_ublock-room'),
 
@@ -25,6 +27,13 @@ urlpatterns = [
     path('admin/add-feature/', CreateRoomFeatureView.as_view(), name='add-feature'),
 
     path('admin/room-feature/', RoomFeatureView.as_view(), name='room-feature'),
+
+    path('add-booking/', CreateBookingView.as_view(), name='create-booking'),
+    path('admin/booking-list/', BookingListView.as_view(), name='booking-list'),
+    path('booking-page/', BookingPageView.as_view(), name='booking-page'),
+    path('booking-payment/', RazorpayOrderView.as_view(), name='razorpay-order'),
+
+    
 
 
 
