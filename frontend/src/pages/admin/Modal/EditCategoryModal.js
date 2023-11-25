@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
-import  Modal  from "react-modal";
+import Modal from "react-modal";
 import { FaTimes, FaTrash } from "react-icons/fa";
 import { FcAddImage } from "react-icons/fc";
 import "./AddCategory.css";
 import { toast } from 'react-toastify';
-
 
 export default function EditCategoryModal({
   isOpen,
@@ -25,11 +24,12 @@ export default function EditCategoryModal({
     e.preventDefault();
     const errors = validate(categoryName);
     setFormError(errors);
+    console.log(categoryData?.image,'00000000000');
 
     if (Object.keys(errors).length === 0) {
       try {
         const updatedCategoryData = new FormData();
-        updatedCategoryData.append('categoryName', categoryName);
+        updatedCategoryData.append('category_name', categoryName);
         updatedCategoryData.append('image', selectedImage);
         updatedCategoryData.append('categoryId', categoryData.id);
 
@@ -73,7 +73,6 @@ export default function EditCategoryModal({
 
     return errors;
   };
-
   const showToast = (message, type = 'error') => {
     toast[type](message, {
       position: toast.POSITION.TOP_RIGHT,
@@ -115,7 +114,7 @@ export default function EditCategoryModal({
         <div className="image-input mt-4">
           {/* Image Preview */}
           {selectedImage ? (
-            <div className="image-preview-container">
+            <div className="image-preview-container" style={{display:"flex",justifyContent:"space-between"}}>
               <img
                 src={typeof selectedImage === 'string' ? selectedImage : URL.createObjectURL(selectedImage)}
                 alt="Selected Image"

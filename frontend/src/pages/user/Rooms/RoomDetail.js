@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { Box, Heading, Image, Text, Button, Flex, VStack, Spinner } from '@chakra-ui/react';
 import { adminInstance } from '../../../utils/Axios';
 import { baseUrl } from '../../../utils/constants';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import {activateRoomInfo} from '../../../redux/slices/roomslices/roomSlice'
 
-function RoomDetail() {
+
+function RoomDetail(rooms) {
   const [roomData, setRoomData] = useState([]);
   const[isRoomData, setIsRoomData] = useState(false)
   const { id } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch()
  
 
   
@@ -21,6 +26,7 @@ function RoomDetail() {
       .then((data) => {
         console.log('Room data:',data);
         setRoomData(data[0]);
+        dispatch(activateRoomInfo(data[0]))
         setIsRoomData(true);
       })
       .catch((error) => {
@@ -32,7 +38,8 @@ function RoomDetail() {
     navigate('/roomlistuser')
   }
   const handleBooking=()=>{
-    navigate('/add-booking')
+    navigate('/add-roombooking',{roomData})
+    // navigate(`/add-booking/${id}/`,{ state: roomData })
   }
   // if (isLoading) {
   //   return <div>Loading...</div>; // Show a loading indicator
@@ -42,59 +49,67 @@ function RoomDetail() {
   //   return <div>Error: Room data not available.</div>; // Show an error message
   // }
   console.log("isRoomData:", isRoomData);
+
+
   return (
-    <div className="room-container p-4">
-      <div className="text-center my-5">
-        <h1 className="text-4xl font-bold text-gray-800">Room Detail</h1>
-        <div className="w-16 h-1 bg-blue-500 mx-auto mt-2"></div>
-      </div>
-      {isRoomData && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 justify-center">
-          <div className="mb-4">
-            <div className="p-6 rounded-lg shadow-md border border-gray-300 bg-white relative group">
-              <img
-                src={`${baseUrl}${roomData.cover_image}`}
-                alt={roomData.title}
-                className="mb-4 h-64 w-full object-cover rounded-lg"
-              />
-              <h2 className="text-2xl font-semibold text-black mb-2">{roomData.title}</h2>
-              <p className="text-lg text-gray-700 mb-4">
-                Category: {roomData.category ? roomData.category.category_name : 'Not available'}
-              </p>
-              <h3 className="text-xl font-semibold text-black mb-2">Price Per Day: ₹{roomData.price_per_night}</h3>
-              <p className="text-lg text-gray-900 mb-4">Description: {roomData.description}</p>
-              <p className="text-lg text-gray-900 mb-4">Capacity: Maximum {roomData.capacity} people</p>
-              <p className="text-lg text-gray-900 mb-4">Room Size: {roomData.room_size} sq.ft</p>
-              <p className="text-lg text-gray-900 mb-4">Meals Included</p>
-              <p className="text-lg text-gray-900 mb-4">
-                Amenities: {roomData.amenities ? roomData.amenities.map(amenity => amenity.name).join(', ') : 'Not available'}
-              </p>
-              <p className="text-lg text-gray-900 mb-4">
-                Features: {roomData.features ? roomData.features.map(feature => feature.name).join(', ') : 'Not available'}
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-col items-center justify-center">
-            <button onClick={handleBooking}
-    
-              className="mt-4 px-6 py-3 bg-blue-500 text-white rounded-md text-center hover:bg-blue-600 transition duration-300 ease-in-out"
-            >
-              Book Now
-            </button>
-            <button onClick={handleRooms}
-    
-              className="mt-4 px-6 py-3 bg-blue-300 text-black rounded-md text-center border border-gray-500 hover:bg-gray-200 transition duration-300 ease-in-out"
-            >
-              Back to Room List
-            </button>
-          </div>
-        </div>
+    <Box p={4} className="room-container">
+      <Box textAlign="center" my={5}>
+        <Heading as="h1" size="xl" fontWeight="bold" color="gray.800">
+          Room Detail
+        </Heading>
+        <Box w="16" h="1" bg="blue.500" mx="auto" mt={2}></Box>
+      </Box>
+
+      {!isRoomData && (
+        <Flex justifyContent="center">
+          <Spinner size="xl" color="blue.500" />
+        </Flex>
       )}
-    </div>
-      
+
+      {isRoomData && roomData && (
+        <Flex justifyContent="center" flexWrap="wrap">
+          <Box mb={4}>
+            <Box p={6} rounded="lg" boxShadow="md" border="1px" borderColor="gray.300" bg="white" pos="relative" _groupHover={{}}>
+              <Image src={`${baseUrl}${roomData.cover_image}`} alt={roomData.title} mb={4} h="64" w="full" objectFit="cover" rounded="lg" />
+              <Heading as="h2" fontSize="2xl" fontWeight="semibold" color="black" mb={2}>
+                {roomData.title}
+              </Heading>
+              <Text fontSize="lg" color="gray.700" mb={4}>
+                Category: {roomData.category ? roomData.category.category_name : 'Not available'}
+              </Text>
+              <Text fontSize="xl" fontWeight="semibold" color="black" mb={2}>
+                Price Per Day: ₹{roomData.price_per_night}
+              </Text>
+              <Text fontSize="lg" color="gray.900" mb={4}>
+                Description: {roomData.description}
+              </Text>
+              <Text fontSize="lg" color="gray.900" mb={4}>
+                Capacity: Maximum {roomData.capacity} people
+              </Text>
+              <Text fontSize="lg" color="gray.900" mb={4}>
+                Room Size: {roomData.room_size} sq.ft
+              </Text>
+              <Text fontSize="lg" color="gray.900" mb={4}>
+                Meals Included
+              </Text>
+              <Text fontSize="lg" color="gray.900" mb={4}>
+                Features: {roomData.features ? roomData.features.map((feature) => feature.name).join(', ') : 'Not available'}
+              </Text>
+            </Box>
+          </Box>
+          <VStack alignItems="center" justifyContent="center">
+            <Button onClick={handleBooking} mt={4} px={6} py={3} bg="blue.500" color="white" rounded="md" _hover={{ bg: 'blue.600' }}>
+              Book Now
+            </Button>
+            <Button onClick={handleRooms} mt={4} px={6} py={3} bg="blue.300" color="black" rounded="md" border="1px" borderColor="gray.500" _hover={{ bg: 'gray.200' }}>
+              Back to Room List
+            </Button>
+          </VStack>
+        </Flex>
+      )}
+    </Box>
   );
 }
-
 export default RoomDetail;
 
 

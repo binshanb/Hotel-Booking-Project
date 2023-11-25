@@ -1,11 +1,22 @@
 import "./Login.css";
-import { Link, useNavigate } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useLoginMutation } from "../../redux/slices/userslices/userApiSlice";
 import { setCredentials } from "../../redux/slices/userslices/authSlice";
 import { ToastContainer,toast  } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import {
+  Box,
+  Button,
+  FormControl,
+  FormErrorMessage,
+  FormLabel,
+  Input,
+  Link,
+  Text,
+  VStack,
+} from "@chakra-ui/react";
 
 
 function UserLogin() {
@@ -47,7 +58,7 @@ function UserLogin() {
       const res = await login({ email, password }).unwrap();
       console.log("res", res);
       dispatch(setCredentials({ ...res }));
-      showToast("Login successful");
+      showToast("Login successful","success");
       navigate("/");
     } catch (err) {
       toast.error(err?.data || err?.error);
@@ -74,82 +85,60 @@ function UserLogin() {
     return errors;
   };
   return (
-    <div
+    <Box
       className="login template d-flex justify-content-center align-items-center vh-100 bg-blue-200"
-  
+      p={4}
     >
-      <div className="form_container p-5 rounded bg-white">
-        <form onSubmit={submitHandler}>
-          <h3 className="text-center">Sign In</h3>
-          <div className="mb-3">
-            <input
+      <Box className="form_container p-5 rounded bg-white">
+        <VStack as="form" onSubmit={submitHandler} spacing={4} align="center">
+          <Text as="h3" className="text-center">
+            Sign In
+          </Text>
+          <FormControl isInvalid={!!formErrors.email}>
+            <Input
               type="email"
               value={email}
               placeholder="Enter Email"
-              onChange={(e) => {
-                setEmail(e.target.value);
-              }}
-              className="form-control"
+              onChange={(e) => setEmail(e.target.value)}
             />
-            {formErrors.email && (
-              <p style={{ color: "red" }}>{formErrors.email}</p>
-            )}
-          </div>
-          <div className="mb-3">
-            <input
+            <FormErrorMessage>{formErrors.email}</FormErrorMessage>
+          </FormControl>
+          <FormControl isInvalid={!!formErrors.password}>
+            <Input
               type="password"
               value={password}
               placeholder="Enter password"
-              onChange={(e) => {
-                setPassword(e.target.value);
-              }}
-              className="form-control"
+              onChange={(e) => setPassword(e.target.value)}
             />
-            <p style={{ color: "red" }}>{formErrors.password}</p>
-          </div>
+            <FormErrorMessage>{formErrors.password}</FormErrorMessage>
+          </FormControl>
 
-          <div className="d-grid mt-4">
-            <button className="btn btn-primary mb-3">
-              Sign In
-            </button>
-          </div>
-          <div className="text-end mt-2">
-            <p className="link">
-              <Link
-                style={{ color: "black", textDecoration: "none" }}
-                to="/forgotPassword"
-              >
-                Forgot Password ?
-              </Link>{" "}
+          <Button type="submit" colorScheme="blue">
+            Sign In
+          </Button>
+          <Box textAlign="end" mt={2}>
+            <Text className="link">
+              <RouterLink to="/forgotPassword">Forgot Password ?</RouterLink>{" "}
               |
-              <Link
-                style={{ color: "black", textDecoration: "none" }}
-                to="/signup"
-                className="ms-2"
-              >
+              <RouterLink to="/signup" className="ms-2">
                 Sign up
-              </Link>
-            </p>
-          </div>
-        </form>
+              </RouterLink>
+            </Text>
+          </Box>
+        </VStack>
         <ToastContainer />
-        <div className="links-container text-end mt-2">
-          <p>
-            <Link
-              style={{ color: "black", textDecoration: "none" }}
-              to="/otpLoginEmail"
-              className="ms-2"
-            >
+        <Box className="links-container text-end mt-2">
+          <Text>
+            <RouterLink to="/otpLoginEmail" className="ms-2">
               Otp Login
-            </Link>
-          </p>
-          <p></p>
-        </div>
-      </div>
-    
-    </div>
+            </RouterLink>
+          </Text>
+        </Box>
+      </Box>
+    </Box>
   );
 }
+
 
 export default UserLogin;
 

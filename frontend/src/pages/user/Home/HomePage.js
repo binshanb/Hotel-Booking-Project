@@ -10,7 +10,7 @@ import Typography from '@mui/material/Typography';
 
 import Hotel1 from '../../../assets/hotel1.jpg' 
 import Hotel2 from '../../../assets/hotel2.png' 
-
+import DateSelectionForm from '../Bookings/DateSelectionForm';
 import Hotel3 from '../../../assets/hotel16.jpg' 
 import { Carousel } from 'react-responsive-carousel';
 import Card from '@mui/material/Card';
@@ -98,6 +98,8 @@ return (
   <main>
     {/* Hero unit */}
     <Banner />
+    <br/><br/>
+ 
 
     <Box
   sx={{
@@ -119,7 +121,8 @@ return (
       color: 'Black',
     }}
   >
-    <div
+       <DateSelectionForm/>
+    {/* <div
       style={{
         flex: '1',
         display: 'flex',
@@ -128,6 +131,7 @@ return (
         flexDirection: 'column',
       }}
     >
+      
       <div
         style={{
           backgroundColor: 'rgba(255, 255, 255, 0.5)',
@@ -203,8 +207,8 @@ return (
         </Link>
       </div>
       <Typography variant="h6">Utilize Our Room Facilities</Typography>
-      <Typography variant="body2">Discover the comforts of our in-room amenities</Typography>
-    </div>
+      <Typography variant="body2">Discover the comforts of our in-room amenities</Typography> */}
+    {/* </div> */}
   </div>
 </Box>
 
@@ -212,8 +216,8 @@ return (
       {/* End hero unit */}
       <h2 className="text-4xl font-bold text-gray-800 underline">Features</h2>
       <Grid container spacing={4}>
-        {cards.map((card) => (
-          <Grid item key={card} xs={12} sm={6} md={4}>
+        {cards.map((card, index) => (
+          <Grid item key={index} xs={12} sm={6} md={4}>
             <Card
               sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
             >

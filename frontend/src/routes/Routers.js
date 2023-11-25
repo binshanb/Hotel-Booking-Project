@@ -19,12 +19,17 @@ import Contact from '../pages/user/Contact/Contact'
 import RoomCategory from '../pages/admin/RoomCategories/RoomCategory'
 import RoomList from '../pages/admin/RoomCategories/RoomList'
 import RoomListUser from '../pages/user/Rooms/RoomListUser'
-import AmenitiesList from '../pages/admin/Amenities/AmenitiesList'
 import RoomDetail from '../pages/user/Rooms/RoomDetail'
 import BookingForm from '../components/Bookings/BookingForm'
 import BookingPage from '../pages/user/Bookings/BookingPage'
 import BookingList from '../pages/admin/Booking/BookingList'
-import BookingPayment from '../pages/user/Bookings/BookingPayment'
+import BookingPayment from '../pages/user/Bookings/BookingSuccessPage'
+import RoomFeatureList from '../pages/admin/Features/RoomFeatureList'
+import DateSelectionForm from '../pages/user/Bookings/DateSelectionForm'
+import BookingHistory from '../pages/admin/Booking/BookingHistory'
+import RoomFilter from '../pages/user/Rooms/RoomFilter';
+import BookingSuccessPage from '../pages/user/Bookings/BookingSuccessPage'
+
 
 
 
@@ -70,12 +75,19 @@ const Routers = () => {
         <Route path='/about' element={<About/>} />
         <Route path='/contact' element={<Contact/>} />
         <Route path='/room-detail/:id' element={<RoomDetail/>} />
+        <Route path='/room-filter' element={<RoomFilter/>} />
+        
+
 
         {/* <-----------Booking------------> */}
 
-        <Route path='/add-booking' element={<BookingForm />} />
-        <Route path='/booking-page' element={<BookingPage/>} />
-        <Route path='/booking-payment' element={<BookingPayment/>} />
+        <Route path='/add-roombooking' element={<BookingForm/>} />
+        <Route path='/roombooking-page/:bookingId' element={<BookingPage/>} />
+        <Route path='/booking-success' element={<BookingSuccessPage/>} />
+        <Route path='/dateselection-form' element={<DateSelectionForm/>} />
+        {/* <Route path='/my-bookings' element={<MyBookings/>}/> */}
+
+
         
         
 
@@ -108,9 +120,12 @@ const Routers = () => {
         <Route path='/admin/usermanagement' element={<UserManagement />} />
         <Route path='/admin/room-category' element={<RoomCategory/>} />
         <Route path='/admin/room-list' element={<RoomList/>} />
-        <Route path='/admin/room-amenities' element={<AmenitiesList/>} />
+        <Route path='/admin/room-feature' element={<RoomFeatureList/>} />
+      
 
         <Route path='/admin/booking-list'    element= {<BookingList/>} />
+        <Route path='/admin/booking-history'    element= {<BookingHistory/>} />
+
       </Route>
       
 

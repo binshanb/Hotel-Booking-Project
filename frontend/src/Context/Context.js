@@ -1,16 +1,17 @@
 
 import React, { createContext, useState, useEffect } from "react";
 import axios from "axios";
+import instance from "../utils/Axios";
 
-export const MyContext = createContext();
+export const RoomContext= createContext();
 
-const MyContextProvider = ({ children }) => {
+const RoomProvider = ({ children }) => {
   const [rooms, setRooms] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get("/admin/room-list/");
+        const response = await instance.get("/admin/room-list/");
         setRooms(response.data);
       } catch (error) {
         console.error("Error fetching room list:", error);
@@ -22,11 +23,12 @@ const MyContextProvider = ({ children }) => {
 
   const contextValue = {
     rooms,
-    // Add other context properties as needed
   };
-
-  return <MyContext.Provider value={contextValue}>{children}</MyContext.Provider>;
+  return (
+  <RoomContext.Provider value={{ rooms, setRooms }}>
+  {children}
+</RoomContext.Provider>
+);
 };
-
-export default MyContextProvider;
+export default RoomProvider;
 

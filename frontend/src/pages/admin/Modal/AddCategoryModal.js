@@ -6,14 +6,13 @@ import "./AddCategory.css";
 import { toast } from 'react-toastify';
 
 
-
 export default function AddCategoryModal({
   isOpen,
   onRequestClose,
   onAddCategory,
 }) {
   const [formError, setFormError] = useState({});
-  const [categoryName, setCategoryName] = useState("");
+  const [categoryName, setCategoryName] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
 
   const handleAddCategory = async (e) => {
@@ -26,7 +25,6 @@ export default function AddCategoryModal({
         const categoryData = new FormData();
         categoryData.append('category_name', categoryName);
         categoryData.append('image', selectedImage);
-        console.log(categoryName)
 
         const response = await onAddCategory(categoryData, {
           headers: {
@@ -95,7 +93,7 @@ export default function AddCategoryModal({
             <FaTimes className="text-gray-500 hover:text-red-500 cursor-pointer" />
           </div>
         </div>
-        <h2 className="text-4xl font-bold mt-4">Add Category</h2>
+        <h2 className="text-3xl font-bold mt-4">Add Category</h2>
         <input
           type="text"
           placeholder="Category Name"
@@ -151,7 +149,6 @@ export default function AddCategoryModal({
         <div className="buttonDiv mt-4">
           <button
             onClick={handleAddCategory}
-            
             className="add-button bg-blue-500 text-white px-4 py-2 rounded cursor-pointer mx-auto"
           >
             Add

@@ -67,7 +67,7 @@
         e.stopPropagation();
         try {
           setBlocked(!blocked);
-          const response = await adminInstance.patch(`/block-unblock/${userId}/`);
+          const response = await adminInstance.patch(`booking/admin/block-unblock/${userId}/`);
           // fetchData();
         } catch (error) {
           console.error("Error blocking user:", error);
@@ -87,7 +87,7 @@
     
       const fetchData = async () => {
         try {
-          const url = searchTerm ? `users/?search=${searchTerm}` : "users/";
+          const url = searchTerm ? `admin/users/?search=${searchTerm}` : "admin/users/";
           const res = await adminInstance.get(url);
           setFilteredRows(res.data);
         } catch (error) {

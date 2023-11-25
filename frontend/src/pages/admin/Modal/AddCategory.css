@@ -1,6 +1,7 @@
 /* Styles for the CategoryAddModal */
 .custom-modal {
-    width: 400px; /* Adjust the width as needed */
+    width: 800px;
+     /* Adjust the width as needed */
     max-width: 90%; /* Make it responsive */
     background-color: #fff;
     border-radius: 10px;
@@ -16,7 +17,7 @@
   /* Close icon styles */
   .custom-modal .close-icon {
     position: absolute;
-    top: 10px;
+    top: 50px;
     right: 10px;
     cursor: pointer;
     font-size: 24px;

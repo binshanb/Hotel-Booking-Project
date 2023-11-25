@@ -11,71 +11,6 @@ import AddRoomModal from "../Modal/AddRoomModal";
 import EditRoomModal from "../Modal/EditRoomModal"; // Import the new modal
 import { toast } from "react-toastify";
 
-const columns = [
-  { field: "id", headerName: "ID", width: 70 },
-  { field: "title", headerName: "Room Name", width: 150 },
-  { field: "category__category_name", headerName: "Category", width: 130 },
-  { field: "price_per_night", headerName: "Price Per Night", width: 150 },
-  { field: "room_slug", headerName: "Room Slug", width: 130 },
-
-  { field: "capacity", headerName: "Capacity", width: 120 },
-  { field: "room_size", headerName: "Room Size", width: 120 },
-  { field: "description", headerName: "Description", width: 120 },
-  {
-    field: "cover_image",
-    headerName: "Cover Image",
-    width: 200,
-    renderCell: (params) => (
-      <img
-        src={params.value}
-        alt="Room"
-        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-      />
-    ),
-  },
-  {
-    field: "amenities",
-    headerName: "Amenities",
-    width: 200,
-    renderCell: (amenities) => (
-      <ul>
-        {Array.isArray(amenities) && 
-          amenities.map((amenity) => (
-            <li key={amenity.id}>{amenity.amenity_name}</li>
-          ))}
-      </ul>
-    ),
-  },
-  {
-    field: "features",
-    headerName: "Features",
-    width: 200,
-    renderCell: (features) => (
-      <ul>
-        {Array.isArray(features) &&
-          features.map((feature) => (
-              <li key={feature.id}>{feature.name}</li>
-            ))}
-        
-        
-      </ul>
-    ),
-  },
-
-
-  {
-    field: "is_active",
-    headerName: "Active",
-    width: 100,
-    renderCell: (params) => (
-      params.value ? (
-        <GoCheckCircleFill color="green" style={{ fontSize: "24px" }} />
-      ) : (
-        <HiExclamationCircle color="red" style={{ fontSize: "24px" }} />
-      )
-    ),
-  },];
-
 const showToast = (message, type = "error") => {
   toast[type](message, {
     position: toast.POSITION.TOP_RIGHT,
@@ -96,13 +31,81 @@ const RoomList = () => {
   const [selectedRooms, setSelectedRooms] = useState(null);
   const [description,setDescription] = useState("");
   const [categories, setCategories] = useState([]);
-  const [amenities, setAmenities] = useState([]);
-  const [features, setFeatures] = useState([]);
-  
 
+  const [features, setFeatures] = useState([]);
+
+
+  const getCategoryName = (categoryId) => {
+    const category = categories.find((cat) => cat.id === categoryId);
+    return category ? category.category_name : "";
+  };
+  
+  const getFeaturesList = (featureIds) => {
+    return featureIds.map((featureId) => {
+      const feature = features.find((feat) => feat.id === featureId);
+      return feature ? feature.name : "";
+    });
+  };
+  const columns = [
+    { field: "id", headerName: "ID", width: 70 },
+    { field: "title", headerName: "Room Name", width: 150 },
+    { field: "category", headerName: "Category", width: 130, valueGetter: (params) => params.row.category.category_name || "", },
+    { field: "price_per_night", headerName: "Price Per Night", width: 150 },
+    { field: "room_slug", headerName: "Room Slug", width: 130 },
+  
+    { field: "capacity", headerName: "Capacity", width: 120 },
+    { field: "room_size", headerName: "Room Size", width: 120 },
+    { field: "description", headerName: "Description", width: 120 },
+    {
+      field: "cover_image",
+      headerName: "Cover Image",
+      width: 200,
+      renderCell: (params) => (
+        <img
+          src={params.value}
+          alt="Room"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      ),
+    },
+    {
+      field: "features",
+      headerName: "Features",
+      width: 200,
+      renderCell: (params) => (
+        <ul>
+       {params.row.features.map((featureId) => {
+        console.log("Feature ID:", featureId); // Log the featureId to check against features array
+        const foundFeature = features.find((feature) => feature.id === featureId);
+        console.log("Found Feature:", foundFeature); // Log the foundFeature to check if it's null or an actual feature
+        return (
+          <li key={featureId}>
+            {foundFeature ? foundFeature.name : 'Unknown Feature'}
+          </li>
+        );
+      },
+      {
+        field: "is_active",
+        headerName: "Active",
+        width: 100,
+        renderCell: (params) => (
+          params.value ? (
+            <GoCheckCircleFill color="green" style={{fontSize: "24px"}} />
+          ) : (
+            <HiExclamationCircle color="red" style={{fontSize: "24px"}}/>
+          )
+        ),
+      },
+      
+      )}
+      </ul>
+      ),
+    }
+    ,];
   const fetchRooms = async () => {
     try {
-      const response = await adminInstance.get("/room-list/");
+      const response = await adminInstance.get("booking/admin/room-list/");
+      console.log(response.data,"jkkjjjkk")
       setRooms(response.data);
     } catch (error) {
       console.error("Error fetching categories", error);
@@ -111,35 +114,35 @@ const RoomList = () => {
   
   useEffect(() => {
     fetchRooms();
+    fetchCategories();
+    fetchFeatures();
+  }, []);
 
-    adminInstance.get("/room-category/")
-    .then((response) => {
+  const fetchCategories = async () => {
+    try {
+      const response = await adminInstance.get("booking/admin/room-category/");
       setCategories(response.data);
-    })
-    .catch((error) => {
+    } catch (error) {
       console.error("Error fetching categories", error);
-});
-    adminInstance.get("/room-amenities/")
-    .then((response) => {
-      setAmenities(response.data);
-    })
-    .catch((error) => {
-      console.error("Error fetching amenities", error);
-    })},[]);
-    // adminInstance.get("/features/")
-    // .then((response) => {
-    //   setFeatures(response.data);
-    // })
-  //   .catch((error) => {
-  //     console.error("Error fetching features", error);
-  // })}, []);
+    }
+  };
+
+  const fetchFeatures = async () => {
+    try {
+      const response = await adminInstance.get("booking/admin/room-feature/");
+      setFeatures(response.data);
+    } catch (error) {
+      console.error("Error fetching features", error);
+    }
+  };
+
 
   // const handleRoomSelect = (room) => {
   //   setSelectedRooms(room);
   // };
-  const handleAddRooms = async (roomData) => {
+  const handleAddRoom = async (roomData) => {
     try {
-      await adminInstance.post("/add-room/", roomData);
+      await adminInstance.post("booking/admin/add-room/", roomData);
       fetchRooms();
       showToast("Room added", "success");
       setIsAddModalOpen(false);
@@ -156,7 +159,7 @@ const RoomList = () => {
 
   const handleUpdateRoom = async (updatedRoomData, roomId) => {
     try {
-      await adminInstance.put(`/edit-room/${roomId}/`, updatedRoomData);
+      await adminInstance.put(`booking/admin/edit-room/${roomId}/`, updatedRoomData);
       fetchRooms();
       showToast("Room updated", "success");
       setIsEditModalOpen(false);
@@ -168,7 +171,7 @@ const RoomList = () => {
 
   const handleBlockUnblockRoom = async (roomId, isBlocked) => {
     try {
-      await adminInstance.patch(`/room-list/block-unblock/${roomId}/`, {
+      await adminInstance.patch(`booking/admin/room-list/block-unblock/${roomId}/`, {
         is_active: !isBlocked,
       });
       fetchRooms();
@@ -242,25 +245,25 @@ const RoomList = () => {
             }}
           />
         </div>
-
+        
         <AddRoomModal
           isOpen={isAddModalOpen}
           onRequestClose={() => setIsAddModalOpen(false)}
-          onAddRoom={handleAddRooms}
+          onAddRoom={handleAddRoom}
+          roomData={selectedRooms}
           categories={categories} 
-          amenities={amenities}
           features={features}
         />
-        {selectedRooms && (
+       
+  {selectedRooms && (
    <EditRoomModal
    isOpen={isEditModalOpen}
    onRequestClose={() => setIsEditModalOpen(false)}
    onEditRoom={handleUpdateRoom}
    roomData={selectedRooms}
-   amenities={amenities} // Make sure to pass amenities here
    features={features}
    categories={categories}
-    // Make sure to pass features here
+
  />
         )}
       </div>

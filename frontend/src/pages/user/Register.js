@@ -22,11 +22,12 @@ function Register() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
-
   const validateMobileNumber = (mobileNumber) => {
-    const mobileRegex = /^\+\d{1,3}-\d{3,14}$/;
+    const mobileRegex = /^\d{10}$/; // Regular expression for 10-digit mobile number
     return mobileRegex.test(mobileNumber);
   };
+  
+  
 
   const validatePassword = (password) => {
     const lowercaseRegex = /[a-z]/;
@@ -43,7 +44,7 @@ function Register() {
       isNumberValid,
       isLengthValid: password.length >= 6,
     };
-  };
+  }
 
   const showToast = (message, type = 'error') => {
     toast[type](message, {
@@ -77,7 +78,7 @@ function Register() {
             ...prevErrors,
             email: 'Invalid email format',
           }));
-          showToast('Invalid email format');
+         
         }
         break;
       case 'mobileNumber':
@@ -86,7 +87,7 @@ function Register() {
             ...prevErrors,
             mobileNumber: 'Invalid mobile number format',
           }));
-          showToast('Invalid mobile number format');
+          
         }
         break;
       case 'password':
@@ -231,7 +232,7 @@ function Register() {
           </form>
         </div>
       </div>
-      <ToastContainer
+       <ToastContainer
         position="top-center"
         autoClose={3000}
         newestOnTop={false}

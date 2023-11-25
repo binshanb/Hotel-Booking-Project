@@ -3,6 +3,7 @@ import './Banner.css'
 
 import{ useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Box, ChakraProvider } from '@chakra-ui/react';
 
 import { Carousel } from 'react-responsive-carousel';
 import 'react-responsive-carousel/lib/styles/carousel.min.css';
@@ -19,27 +20,22 @@ const images = [
 
 const ImageCarousel = () => {
   return (
-    <div className="banner">
-      <div style={{height:'100px'}}>
+    <ChakraProvider>
+    <Box className="banner" height="100%">
+      <Box height="100px" />
 
-      </div>
-  <Carousel autoPlay infiniteLoop showStatus={false} showThumbs={false}>
-    {images.map((image, index) => (
-      <div key={index}>
-         <Link to="/categorylist">
-        <img
-          src={image}
-          alt={`Image ${index + 1}`}
-          className="carousel-image"
-        />
-        </Link>
-      </div>
-    ))}
-  </Carousel>
-
-</div>
-
-  );
+      <Carousel autoPlay infiniteLoop showStatus={false} showThumbs={false}>
+        {images.map((image, index) => (
+          <Box key={index}>
+            <Link to="/categorylist">
+              <Box as="img" src={image} alt={`Image ${index + 1}`} className="carousel-image" />
+            </Link>
+          </Box>
+        ))}
+      </Carousel>
+    </Box>
+  </ChakraProvider>
+);
 };
 
 export default ImageCarousel;

@@ -1,74 +1,46 @@
 import React, { useState, useEffect } from "react";
 import Modal from "react-modal";
-import { FaTimes, FaTrash, FaImage } from "react-icons/fa";
+import { FaTimes, FaImage, FaTrash } from "react-icons/fa";
 import { FcAddImage } from "react-icons/fc";
 import { toast } from 'react-toastify';
-
-Modal.setAppElement('#root');
+import axios from 'axios'; // import axios for HTTP requests
+import { adminInstance } from "../../../utils/Axios";
 
 export default function EditRoomModal({
   isOpen,
   onRequestClose,
-  onEditRoom,   
-  roomData,
-  categories, // Pass a list of categories to select from
-  amenities, // Pass a list of amenities to select from
-  features, // Pass a list of features to select from
+  categories,
+  roomData, // Pass the room data to edit
 }) {
   const [formError, setFormError] = useState({});
-  const [roomName, setRoomName] = useState(roomData?.title || "");
-  const [selectedImage, setSelectedImage] = useState(roomData?.cover_image || null);
-  const [selectedCategory, setSelectedCategory] = useState(roomData?.category.category_name || "");
-  const [pricePerNight, setPricePerNight] = useState(roomData?.price_per_night || "");
-  const [capacity, setCapacity] = useState(roomData?.capacity || "");
-  const [roomSize, setRoomSize] = useState(roomData?.room_size || "");
-  const [selectedAmenities, setSelectedAmenities] = useState(roomData?.amenities.name || []);
-  const [selectedFeatures, setSelectedFeatures] = useState(roomData?.features.name || []);
-
-  useEffect(() => {
-    setRoomName(roomData?.title || "");
-    setSelectedImage(roomData?.cover_image || null);
-    setSelectedCategory(roomData?.category.category_name || "");
-    setPricePerNight(roomData?.price_per_night || "");
-    setCapacity(roomData?.capacity || "");
-    setRoomSize(roomData?.room_size || "");
-    setSelectedAmenities(roomData?.amenities.name || []);
-    setSelectedFeatures(roomData?.features.name || []);
-  }, [roomData]);
-
+  const [editedRoomData, setEditedRoomData] = useState(roomData); // Set initial room data for editing
+  
+  const [availableFeatures, setAvailableFeatures] = useState([]);
+  
   const handleEditRoom = async (e) => {
     e.preventDefault();
-    const errors = validate(roomName, selectedCategory, pricePerNight, capacity, roomSize);
+    const errors = validate(editedRoomData);
     setFormError(errors);
 
     if (Object.keys(errors).length === 0) {
       try {
-        const roomData = new FormData();
-        roomData.append('title', roomName);
-        roomData.append('cover_image', selectedImage);
-        roomData.append('category.category_name', selectedCategory);
-        roomData.append('price_per_night', pricePerNight);
-        roomData.append('capacity', capacity);
-        roomData.append('room_size', roomSize);
-        selectedAmenities.forEach((amenity) => roomData.append('amenities.name', amenity));
-        selectedFeatures.forEach((feature) => roomData.append('features.name', feature));
+        const roomFormData = new FormData();
+        for (const key in editedRoomData) {
+          if (key === 'cover_image' && editedRoomData[key] !== roomData[key]) {
+            roomFormData.append(key, editedRoomData[key]);
+          } else if (editedRoomData[key] !== roomData[key]) {
+            roomFormData.append(key, editedRoomData[key]);
+          }
+        }
 
-        const response = await onEditRoom(roomData, {
+        const response = await adminInstance.put(`booking/admin/edit-room/${editedRoomData.id}`, roomFormData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
         });
 
-        if (response === null) {
-          setRoomName("");
+        if (response.status === 200) {
           setFormError({});
-          setSelectedImage(null);
-          setSelectedCategory("");
-          setPricePerNight("");
-          setCapacity("");
-          setRoomSize("");
-          setSelectedAmenities([]);
-          setSelectedFeatures([]);
           onRequestClose();
           showToast('Room updated successfully!', 'success');
         }
@@ -78,48 +50,43 @@ export default function EditRoomModal({
       }
     }
   };
-
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    setSelectedImage(file);
+    setEditedRoomData({ ...roomData, cover_image: file });
   };
 
   const handleRemoveImage = () => {
-    setSelectedImage(null);
+    setEditedRoomData({ ...roomData, cover_image: null });
   };
 
-  const validate = (roomName, selectedCategory, pricePerNight, capacity, roomSize) => {
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditedRoomData({ ...roomData, [name]: value });
+  };
+
+  const validate = (roomData) => {
     const errors = {};
 
-    if (!roomName) {
-      errors.roomName = "Room name is required";
-    } else if (roomName.length < 3) {
-      errors.roomName = "Enter at least 3 characters";
+    // Perform validation checks here for each field in roomData
+    // For example:
+    if (!roomData.title) {
+      errors.title = "Title is required";
     }
-
-    if (!selectedCategory) {
-      errors.selectedCategory = "Select a category";
-    }
-
-    if (!pricePerNight) {
-      errors.pricePerNight = "Price per night is required";
-    } else if (isNaN(pricePerNight) || parseFloat(pricePerNight) <= 0) {
-      errors.pricePerNight = "Invalid price";
-    }
-
-    if (!capacity) {
-      errors.capacity = "Capacity is required";
-    } else if (isNaN(capacity) || parseInt(capacity) <= 0) {
-      errors.capacity = "Invalid capacity";
-    }
-
-    if (!roomSize) {
-      errors.roomSize = "Room size is required";
-    }
+    // Add more validations for other fields...
 
     return errors;
   };
+  const handleCategoryChange = (e) => {
+    setEditedRoomData({ ...roomData, category: e.target.value });
+  };
 
+  const handleFeatureChange = (e) => {
+    const selectedFeatures = Array.from(
+      e.target.selectedOptions,
+      (option) => option.value
+    );
+    setEditedRoomData({ ...roomData, features: selectedFeatures });
+  };
   const showToast = (message, type = 'error') => {
     toast[type](message, {
       position: toast.POSITION.TOP_RIGHT,
@@ -131,198 +98,202 @@ export default function EditRoomModal({
       progress: undefined,
     });
   };
-  const handleAmenitiesChange = (e, amenityId) => {
-    const isChecked = e.target.checked;
-    if (isChecked) {
-      // Handle adding the amenity to the selectedAmenities state
-      setSelectedAmenities((prevAmenities) => [...prevAmenities, amenityId]);
-    } else {
-      // Handle removing the amenity from the selectedAmenities state
-      setSelectedAmenities((prevAmenities) =>
-        prevAmenities.filter((id) => id !== amenityId)
-      );
-    }
-  };
-  
-  const handleFeaturesChange = (e, featureId) => {
-    const isChecked = e.target.checked;
-    if (isChecked) {
-      // Handle adding the feature to the selectedFeatures state
-      setSelectedFeatures((prevFeatures) => [...prevFeatures, featureId]);
-    } else {
-      // Handle removing the feature from the selectedFeatures state
-      setSelectedFeatures((prevFeatures) =>
-        prevFeatures.filter((id) => id !== featureId)
-      );
-    }
-  };
-  
+  useEffect(() => {
+    setEditedRoomData(roomData); // Set room data for editing when it changes
+  }, [roomData]);
+
   return (
     <Modal
       isOpen={isOpen}
       onRequestClose={onRequestClose}
       contentLabel="Edit Room Modal"
       className="custom-modal"
-      overlayClassName="custom-overlay"
+      overlayClassName="custom-overlay "
     >
-      <div className="modal-content p-4">
+        <div className="modal-content p-4" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
         <div className="header">
           <div className="close-icon" onClick={onRequestClose}>
             <FaTimes className="text-gray-500 hover:text-red-500 cursor-pointer" />
           </div>
         </div>
-        <h2 className="text-4xl font-bold mt-4">Edit Room</h2>
-        <input
-          type="text"
-          placeholder="Room Name"
-          value={roomName}
-          onChange={(e) => setRoomName(e.target.value)}
-          className="w-full border rounded p-2 mt-2"
-        />
-        <span className="text-red-500">
-          {formError?.roomName ? formError.roomName : ""}
-        </span>
-
-        <div className="category-select mt-2">
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-          >
-            <option value="">Select Category</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.category_name}
-              </option>
-            ))}
-          </select>
-          <span className="text-red-500">
-            {formError?.selectedCategory ? formError.selectedCategory : ""}
+  
+      <h2 className="text-3xl font-bold mt-4">Edit Room</h2>
+      <form onSubmit={handleEditRoom}>
+      <div className="mt-2">
+            <label htmlFor="title" className="block text-gray-700 font-bold">
+              Room Name
+            </label>
+          <input
+            type="text"
+            placeholder="Title"
+            name="title"
+            value={roomData.title}
+            onChange={handleInputChange}
+            className="w-full border rounded p-2 mt-2"
+          />
+             <span className="text-red-500">
+            {formError?.title ? formError.title : ""}
           </span>
-        </div>
+          </div>
 
-        <input
-          type="text"
-          placeholder="Price per Night"
-          value={pricePerNight}
-          onChange={(e) => setPricePerNight(e.target.value)}
-          className="w-full border rounded p-2 mt-2"
-        />
-        <span className="text-red-500">
-          {formError?.pricePerNight ? formError.pricePerNight : ""}
-        </span>
-
-        <input
-          type="text"
-          placeholder="Capacity"
-          value={capacity}
-          onChange={(e) => setCapacity(e.target.value)}
-          className="w-full border rounded p-2 mt-2"
-        />
-        <span className="text-red-500">
-          {formError?.capacity ? formError.capacity : ""}
-        </span>
-
-        <input
-          type="text"
-          placeholder="Room Size"
-          value={roomSize}
-          onChange={(e) => setRoomSize(e.target.value)}
-          className="w-full border rounded p-2 mt-2"
-        />
-        <span className="text-red-500">
-          {formError?.roomSize ? formError.roomSize : ""}
-        </span>
-
-        {/* Amenities and Features Selection */}
-        <div className="amenities-select mt-2">
-  <label>Amenities</label>
-  {Array.isArray(amenities) &&
-    amenities.map((amenity) => (
-      <label key={amenity.id}>
-        <input
-          type="checkbox"
-          value={amenity.id}
-          checked={selectedAmenities.includes(amenity.id)}
-          onChange={(e) => handleAmenitiesChange(e, amenity.id)}
-        />
-        {amenity.name}
-      </label>
-    ))}
-  <span className="text-red-500">
-    {formError?.selectedAmenities ? formError.selectedAmenities : ""}
-  </span>
-</div>
-
-<div className="features-select mt-2">
-  <label>Features</label>
-  {Array.isArray(features) &&
-    features.map((feature) => (
-      <label key={feature.id}>
-        <input
-          type="checkbox"
-          value={feature.id}
-          checked={selectedFeatures.includes(feature.id)}
-          onChange={(e) => handleFeaturesChange(e, feature.id)}
-        />
-        {feature.feature_name}
-      </label>
-    ))}
-  <span className="text-red-500">
-    {formError?.selectedFeatures ? formError.selectedFeatures : ""}
-  </span>
-</div>
-
-
-        <div className="image-input mt-4">
-          {selectedImage ? (
-            <div className="image-preview-container">
-              <img
-                src={typeof selectedImage === 'string' ? selectedImage : URL.createObjectURL(selectedImage)}
-                alt="Selected Image"
-                className="image-preview"
-              />
-              <div
-                className="remove-image text-red-500 cursor-pointer"
-                onClick={handleRemoveImage}
-              >
-                <FaTrash />
-              </div>
-            </div>
-          ) : (
-            <div
-              style={{
-                color: "#fff",
-                padding: "8px 12px",
-                borderRadius: "5px",
-                cursor: "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-              }}
-              onClick={() => document.getElementById("editRoomImage").click()}
+                    {/* Select dropdown for categories */}
+                    <div className="mt-2">
+            <label htmlFor="category" className="block text-gray-700 font-bold">
+              Category
+            </label>
+            <select
+              id="category"
+              name="category"
+              value={roomData.category}
+              onChange={handleCategoryChange}
+              className="w-full border rounded p-2 mt-2"
             >
-              <FcAddImage
-                style={{ marginRight: "5px", height: "100px", width: "100px" }}
-              />
-              <input
-                type="file"
-                id="editRoomImage"
-                accept="image/*"
-                onChange={handleImageChange}
-                style={{ display: "none" }}
-              />
+              <option value="">Select Category</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.category_name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="mt-2">
+            <label htmlFor="capacity" className="block text-gray-700 font-bold">
+              Price Per Night
+            </label>
+          <input
+            type="number"
+            placeholder="Price per Night"
+            name="price_per_night"
+            value={roomData.price_per_night}
+            onChange={handleInputChange}
+            className="w-full border rounded p-2 mt-2"
+          />
             </div>
-          )}
+            <div className="mt-2">
+            <label htmlFor="capacity" className="block text-gray-700 font-bold">
+              Room Size
+            </label>
+           <input
+            type="number"
+            placeholder="Room Size"
+            name="room_size"
+            value={roomData.room_size}
+            onChange={handleInputChange}
+            className="w-full border rounded p-2 mt-2"
+          />
+          </div>
+               <div className="mt-2">
+            <label htmlFor="capacity" className="block text-gray-700 font-bold">
+              Capacity
+            </label>
+            <input
+              type="number"
+              placeholder="Capacity"
+              name="capacity"
+              value={roomData.capacity}
+              onChange={handleInputChange}
+              className="w-full border rounded p-2 mt-2"
+            />
+          </div>
+          <div className="mt-2">
+            <label htmlFor="room_slug" className="block text-gray-700 font-bold">
+              Room Slug
+            </label>
+            <input
+            type="text"
+            placeholder="Room Slug"
+            name="room_slug"
+            value={roomData.room_slug}
+            onChange={handleInputChange}
+            className="w-full border rounded p-2 mt-2"
+          />
+          </div>
+          <div className="mt-2">
+            <label htmlFor="capacity" className="block text-gray-700 font-bold">
+              Description
+            </label>
+            <textarea
+            placeholder="Description"
+            name="description"
+            value={roomData.description}
+            onChange={handleInputChange}
+            className="w-full border rounded p-2 mt-2"
+          />
+          </div>
+                  {/* Multi-select dropdown for features */}
+                  <div className="mt-4">
+            <label htmlFor="features" className="block text-gray-700 font-bold">
+              Features
+            </label>
+            <select
+              id="features"
+              name="features"
+              multiple
+              value={roomData.features}
+              onChange={handleFeatureChange}
+              className="w-full border rounded p-2 mt-2"
+            >
+              {/* Populate features dynamically */}
+              <option value="">Select Features</option>
+              {availableFeatures.map(feature => (
+                <option key={feature.id} value={feature.id}>
+                  {feature.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          {/* Input field for cover image */}
+          <div className="image-input mt-4">
+            {roomData.cover_image ? (
+              <div className="image-preview-container">
+                <img
+                  src={URL.createObjectURL(roomData.cover_image)}
+                  alt="Selected Image"
+                  className="image-preview"
+                />
+                <div
+                  className="remove-image text-red-500 cursor-pointer"
+                  onClick={handleRemoveImage}
+                >
+                  <FaTrash />
+                </div>
+              </div>
+            ) : (
+              <div
+                style={{
+                  color: "#fff",
+                  padding: "8px 12px",
+                  borderRadius: "5px",
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                }}
+                onClick={() => document.getElementById("roomImage").click()}
+              >
+                <FcAddImage
+                  style={{ marginRight: "5px", height: "100px", width: "100px" }}
+                />
+                <input
+                  type="file"
+                  id="roomImage"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  style={{ display: "none" }}
+                />
+              </div>
+            )}
+          </div>
+          <div className="buttonDiv mt-4">
+        <button
+          type="submit"
+          className="add-button bg-blue-500 text-white px-4 py-2 rounded cursor-pointer mx-auto"
+        >
+          Update
+        </button>
         </div>
-
-        <div className="buttonDiv mt-4">
-          <button
-            onClick={handleEditRoom}
-            className="add-button bg-blue-500 text-white px-4 py-2 rounded cursor-pointer mx-auto"
-          >
-            Update
-          </button>
-        </div>
+      </form>
       </div>
     </Modal>
   );
 }
+

@@ -1,6 +1,6 @@
 // razorpay.js 
 
-import instance from "./Axios";
+import instance from "../utils/Axios";
 
 // Function to load the Razorpay script dynamically
 export const loadRazorpayScript = () => {
@@ -18,11 +18,13 @@ export const loadRazorpayScript = () => {
 export const createRazorpayOrder = async (bookingId, amount) => {
   try {
     // Make an API call to your server to create a Razorpay order using Axios
-    const response = await instance.post('/api/booking/booking-payment', {
+    const response = await instance.post('/api/booking/create-razorpay-order/', {
       bookingId,
       amount,
       
+      
     });
+    console.log(bookingId,amount,"jhjjhhhjhh")
     console.log(response.data)
     return response.data;
   } catch (error) {
