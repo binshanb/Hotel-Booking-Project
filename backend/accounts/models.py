@@ -41,6 +41,13 @@ class AccountUser(AbstractBaseUser, PermissionsMixin):
     image = models.ImageField(upload_to="media/images", null=True,blank=True, default="profile-img.jpg")
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.GUEST)
 
+     # Additional fields
+    address = models.CharField(max_length=255, null=True, blank=True)
+    city = models.CharField(max_length=100, null=True, blank=True)
+    state = models.CharField(max_length=100, null=True, blank=True)
+    country = models.CharField(max_length=100, null=True, blank=True)
+
+
     is_active = models.BooleanField(default=True)
     last_login = models.DateTimeField(auto_now_add=True)
     is_admin = models.BooleanField(default=False)
@@ -69,19 +76,5 @@ class AccountUser(AbstractBaseUser, PermissionsMixin):
 
 #<---------------------------Basics Credentials-----End------------------>
 
-#<---------------------------User Profile------------------------------>
-
-class UserProfile(models.Model):
-    user = models.OneToOneField(AccountUser, on_delete=models.CASCADE)
-    profile_image = models.ImageField(upload_to="media/profile_images", null=True, blank=True)
-    address = models.CharField(max_length=255, null=True, blank=True)
-    bio = models.TextField(null=True, blank=True)
-    website = models.URLField(null=True, blank=True)
-    phone_number = models.CharField(max_length=20, null=True, blank=True)
 
 
-    def __str__(self):
-      if self.user and self.user.first_name:
-         return self.user.first_name
-      else:
-         return "No associated user"

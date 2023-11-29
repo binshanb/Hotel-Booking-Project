@@ -30,7 +30,14 @@ class Room(models.Model):
 
     def __str__(self):
         return self.title
-    
+
+class RoomImage(models.Model):
+    room = models.ForeignKey(Room, related_name='images', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='media/images',default='path/to/default_image.jpg')
+
+    def __str__(self):
+        return f"Image for {self.room.title}"
+
 class Category(models.Model):
     category_name = models.CharField(max_length=30)
     image = models.ImageField(upload_to='media/images',default='path/to/default_image.jpg' )

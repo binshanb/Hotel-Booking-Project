@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import AccountUser,UserProfile
+from .models import AccountUser
 
 class CustomUserAdmin(UserAdmin):
     list_display = ('id', 'email', 'phone_number', 'is_active', 'role', 'is_superuser')
@@ -23,4 +23,4 @@ class UserProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'address')
     search_fields = ('user__first_name', 'user__last_name', 'user__email', 'address')
 
-admin.site.register(UserProfile, UserProfileAdmin)
+

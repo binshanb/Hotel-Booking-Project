@@ -1,9 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 // Retrieve room info from local storage if available, or set to null
-const storedRoomInfo = localStorage.getItem('roomInfo')
-  ? JSON.parse(localStorage.getItem('roomInfo'))
-  : null;
+const storedRoomInfo = localStorage.getItem('roomInfo')? JSON.parse(localStorage.getItem('roomInfo')): null;
+
 
 const initialState = {
   roomInfo: storedRoomInfo,

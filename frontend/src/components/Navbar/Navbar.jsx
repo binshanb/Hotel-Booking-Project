@@ -66,14 +66,24 @@ function Navbar () {
                 </Link>
               </li>
             ))}
+            
             {/* Add a profile icon here */}
+            {userInfo ? (
             <li>
 
-    <Link to="/user-profile" className="profile-icon">
+    <Link to="/user/user-profile" className="profile-icon">
       <i className="fas fa-user"></i>
     </Link>
   
-</li>
+</li>):(
+  <li>
+       <li>
+                <Link to="/login" className="profile-icon"></Link>
+                <i className="fas fa-user"></i>
+              </li>
+
+  </li>
+)}
             {userInfo ? (
               // If user is logged in, show the Logout button
               <li>

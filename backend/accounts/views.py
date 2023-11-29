@@ -4,19 +4,18 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework import generics,permissions
-from rest_framework.generics import UpdateAPIView
+from rest_framework.generics import UpdateAPIView,RetrieveAPIView
 from django.shortcuts import get_object_or_404
 
 from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTTokenUserAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .serializers import UserRegisterSerializer
-from .serializers import CustomTokenObtainPairSerializer,CustomTokenRefreshSerializer,UserSerializer
+from .serializers import CustomTokenObtainPairSerializer,CustomTokenRefreshSerializer,UserSerializer,ResetPasswordSerializer,ForgotPasswordSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView ,TokenRefreshView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import AccountUser
-from .models import UserProfile
 from .serializers import UserProfileSerializer
 
 
@@ -113,15 +112,64 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
-        return self.request.user.profile
+        return self.request.user
+    
+class UserProfileUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = self.request.user
+        serializer = UserProfileSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, *args, **kwargs):
+        user = self.request.user
+        serializer = UserProfileSerializer(user, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-class AccountUserDetailView(generics.RetrieveUpdateAPIView):
-    queryset = AccountUser.objects.all()
+class UserDetailView(RetrieveAPIView):
     serializer_class = UserSerializer
-    # permission_classes = [] 
+    permission_classes = [IsAuthenticated]
+    
+    def get_object(self):
+        return self.request.user
+
+class ResetPasswordView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = ResetPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        password = serializer.validated_data.get('password')
+        # Perform password reset logic here
+        # You can use the 'state' and 'password' variables as needed from the request or context
+        
+        # Example: Reset password for a user
+        user = request.user  # Assuming you have a user context
+        user.set_password(password)
+        user.save()
+        
+        return Response({'message': 'Password successfully reset'}, status=status.HTTP_200_OK)
 
 
 
+class ForgotPasswordView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = ForgotPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data.get('email')
+        # Perform forgot password logic here
+        # You might send an email with a reset link or an OTP to the provided email
+        
+        # Example: Sending an OTP or reset link to the provided email
+        # Your implementation goes here
+        
+        return Response({'message': 'Password reset instructions sent successfully'}, status=status.HTTP_200_OK)
 
 
 

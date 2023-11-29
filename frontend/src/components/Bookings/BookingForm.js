@@ -6,15 +6,37 @@ import { baseUrl } from '../../utils/constants';
 import { useSelector, useDispatch } from 'react-redux';
 // import  {userInfo} from "../../redux/slices/userslices/authSlice"
 import { activateRoomInfo } from '../../redux/slices/roomslices/roomSlice';
-import TextInput from '../../pages/user/Tables/TextInput';
-import { setBookingInfo } from '../../redux/slices/bookingslices/bookingslice';
+
+import { activateBookingInfo } from '../../redux/slices/bookingslices/bookingslice';
+import TextInput from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import Grid from '@mui/material/Grid';
+import TextField from '@mui/material/TextField';
+import { makeStyles} from '@mui/styles';
+import { createTheme } from '@mui/material/styles';
+// import { useParams } from 'react-router-dom';
+
+
+
+const theme = createTheme();
+const useStyles = makeStyles(() => ({
+  formContainer: {
+    padding: theme.spacing(2),
+    '& .MuiTextField-root': {
+      marginBottom: theme.spacing(2),
+    },
+  },
+}));
 
 const BookingForm = ({roomId}) => {
 
+  const classes = useStyles();
+// const{id} = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const roomInfo= useSelector((state) => state.room.roomInfo);
   console.log( roomInfo,"gggggg")
+
 
   const userInfos = useSelector((state) => state.auth.userInfo);
   const loading = useSelector((state) => state.room.loading);
@@ -65,121 +87,105 @@ console.log(formData,"kkjjjhh")
           check_out: checkOutDate.toISOString(),
         };
 
-        const response = await instance.post('/api/booking/add-roombooking/', formattedData);
+        const response = await instance.post(`${baseUrl}/api/booking/add-roombooking/`, formattedData);
          console.log('Booking created:', response.data);
+
          alert('Booking created successfully!');
         // Additional logic after successful booking creation
-      dispatch(setBookingInfo({...response.data}));
+      dispatch(activateBookingInfo ({...response.data.data}));
        if (response && response.data) {
         const bookingId = response.data.id;
+        console.log(bookingId,"book id");
+
         navigate(`/roombooking-page/${bookingId}`)}}
-      else {
-        throw new Error('Invalid date format');
-      }
-    } else {
-      throw new Error('Date fields are empty');
-    }
-  } catch (error) {
-    console.error('Error creating booking:', error);
-    alert('An error occurred while booking. Please try again.');
+        }} catch (error) {
+             console.error('Error creating booking:', error);
+         if (error.response) {
+           console.error('Response data:', error.response.data);
+               }
+  alert('An error occurred while booking. Please try again.');
+}
   }
-};
+
+  
 
   return (
     <div>
-       <h2>Room Booking Form</h2>
-           <form className="booking-form mt-5" onSubmit={handleSubmit}>
-       <div className="row">
-         <TextInput
-          divClass="form-group col-md-6 m-auto"
-          htmlForLabel="inputName"
-          labelName="Room"
-          inputClass="form-control"
-          inputType="name"
-          inputName="name"
-          inputValue={roomInfo.title}
-          inputPlaceHolder="Enter Name"
-          onChange={handleChange}
-          required={true}
-        />
-      </div>
-
-      <div className="row">
-         <TextInput
-          divClass="form-group col-md-6 m-auto"
-          htmlForLabel="inputEmail"
-          labelName="User"
-          inputClass="form-control"
-          inputType="email"
-          inputName="email"
-          inputValue={(decodedUserInfo.email)}
-          inputPlaceHolder="Enter Email"
-          onChange={handleChange}
-          required={true}
-        />
-      </div>
-
-      <div className="row">
-         <TextInput
-          divClass="form-group col-md-6 m-auto"
-          htmlForLabel="Number of Guests"
-          labelName="Number of Guests:"
-          inputClass="form-control"
-          inputType="text"
-          inputName="number_of_guests"
-          inputValue={formData.number_of_guests}
-          inputPlaceHolder="Enter number of guests"
-          onChange={handleChange}
-          required={true}
-        />
-      </div>
-    
-        <div className="row">
-         <TextInput
-          divClass="form-group col-md-6 m-auto"
-          htmlForLabel="inputCheckinDate"
-          labelName="Check in Date"
-          inputClass="form-control"
-          inputType="datetime-local"
-          inputName="check_in"
-          inputValue={formData.check_in}
-          inputPlaceHolder="Enter CheckinDate"
-          onChange={handleChange}
-          required={true}
-        />
-      </div>
-
-          <div className="row">
-         <TextInput
-          divClass="form-group col-md-6 m-auto"
-          htmlForLabel="inputCheckinDate"
-          labelName="Check Out Date"
-          inputClass="form-control"
-          inputType="datetime-local"
-          inputName="check_out"
-          inputValue={formData.check_out}
-          inputPlaceHolder="Enter CheckoutDate"
-          onChange={handleChange}
-          required={true}
-        />
-      </div>
-      <button type="submit" className="btn btn-primary px-5 my-3">Book</button>
-    </form> 
-   </div>
+      <h2>Room Booking Form</h2>
+      <form className={classes.formContainer} onSubmit={handleSubmit}>
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <TextField
+              label="Room"
+              type="text"
+              name="name"
+              value={roomInfo.title}
+              placeholder="Enter Name"
+              onChange={handleChange}
+              required
+              fullWidth
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="User"
+              type="email"
+              name="email"
+              value={decodedUserInfo.email}
+              placeholder="Enter Email"
+              onChange={handleChange}
+              required
+              fullWidth
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="Number of Guests:"
+              type="text"
+              name="number_of_guests"
+              value={formData.number_of_guests}
+              placeholder="Enter number of guests"
+              onChange={handleChange}
+              required
+              fullWidth
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="Check in Date"
+              type="datetime-local"
+              name="check_in"
+              value={formData.check_in}
+              placeholder="Enter CheckinDate"
+              onChange={handleChange}
+              required
+              fullWidth
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="Check Out Date"
+              type="datetime-local"
+              name="check_out"
+              value={formData.check_out}
+              placeholder="Enter CheckoutDate"
+              onChange={handleChange}
+              required
+              fullWidth
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <Button type="submit" variant="contained" color="primary" size="large">
+              Book
+            </Button>
+          </Grid>
+        </Grid>
+      </form>
+    </div>
   );
 };
+
 export default BookingForm;
-
-
-
-
-
-
-
-
-
-
-
 
 
 

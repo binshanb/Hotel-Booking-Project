@@ -84,10 +84,10 @@ function AdminSidebar() {
           </li>
           </NavLink>
       
-          <NavLink to='/admin/booking-payment' className="active-link" style={{ textDecoration: 'none', color: 'black' }}>
+          <NavLink to='/admin/booking-list/' className="active-link" style={{ textDecoration: 'none', color: 'black' }}>
           <li>
             <FaMoneyBillAlt className={`sidebar-icon ${isIconsOnly ? 'hidden' : ''}`} />
-            <span className={`menu-text ${isIconsOnly ? 'hidden' : ''}`}>Payments</span>
+            <span className={`menu-text ${isIconsOnly ? 'hidden' : ''}`}>Booking List</span>
           </li>
           </NavLink>
           {/* New li tags with corresponding icons */}
@@ -97,12 +97,12 @@ function AdminSidebar() {
             <span className={`menu-text ${isIconsOnly ? 'hidden' : ''}`}>Booking Report</span>
           </li>
           </NavLink>
-          <NavLink to='/admin/booking-payment' className="active-link" style={{ textDecoration: 'none', color: 'black' }}>
+          {/* <NavLink to='/admin/booking-payment' className="active-link" style={{ textDecoration: 'none', color: 'black' }}>
           <li>
             <FaEnvelope className={`sidebar-icon ${isIconsOnly ? 'hidden' : ''}`} />
             <span className={`menu-text ${isIconsOnly ? 'hidden' : ''}`}>Messages</span>
           </li>
-          </NavLink>
+          </NavLink> */}
           <li className="logout-button" onClick={handleLogout}>
               <FaSignOutAlt className="sidebar-icon" />
               <span className={`menu-text ${isIconsOnly ? 'hidden' : ''}`}>Logout</span>

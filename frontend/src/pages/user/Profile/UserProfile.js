@@ -1,125 +1,571 @@
-import React, { useState, useEffect,useContext } from 'react';
-import axios from 'axios';  // Import axios for making API requests
-import { baseUrl } from '../../../utils/constants'; // Replace with your API URL
-import instance from '../../../utils/Axios';
-import { useNavigate } from 'react-router-dom';
-import Box from '@mui/material/Box';
-import Container from '@mui/material/Container';
+import React, { useState, useEffect } from "react";
+import "../../../pages/user/Profile/Style.css";
+import EditProfile from "./EditProfile";
+import instance from "../../../utils/Axios";
+import { useNavigate } from "react-router-dom";
 
- 
 function UserProfile() {
- 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone_number, setPhoneNumber] = useState('');
-  const [address, setAddress] = useState('');
-  const [image, setImage] = useState(null);
-  const navigate=useNavigate()
+  const [showForm, setShowForm] = useState(false);
+  const [userData , setUserData] = useState('');
+  const navigate = useNavigate();
 
-  useEffect(() => {
- 
-    // Fetch user profile data from your API
-    instance.get(`${baseUrl}/api/user/user-profile`)
-      .then((response) => {
-        const userData = response.data;
-        setName(userData.name);
-        setEmail(userData.email);
-        setPhoneNumber(userData.phone_number);
-        setAddress(userData.address);
-      })
-      .catch((error) => {
-        console.error('Error fetching user profile:', error);
+  const userId = localStorage.getItem("userInfo")
+    ? JSON.parse(localStorage.getItem("userInfo")).user_id
+    : null;
+  const token = localStorage.getItem("userInfo")
+    ? JSON.parse(localStorage.getItem("userInfo")).access
+    : null;
+    useEffect(() => {
+  const fetchUserData = async () =>{
+    try{
+      const response = await instance.get(`/api/user/detail-view/${userId}/`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
-  }, []);
-
-  const handleUpdateProfile = () => {
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('email', email);
-    formData.append('phone_number', phone_number);
-    formData.append('image', image);
-    formData.append('address', address);
-
-    instance.put(`${baseUrl}/api/user/user-profile/`, formData)
-      .then((response) => {
-        console.log('User profile updated:', response.data);
-        navigate('/user-profile')
-      })
-      .catch((error) => {
-        if (error.response && error.response.status === 401) {
-          // Redirect to the login page or display an error message
-          navigate('/login');
-        } else {
-          console.error('Error updating user profile:', error);
-        }
-        
-      });
+      console.log(response.data,'data')
+      setUserData(response.data)
+    }catch (error) {
+      console.error("Error fetching user data", error);
+    }
+  }
+  fetchUserData();
+}, [userId, token]);
+const {first_name} = userData
+  const  handleEditClick = () => {
+    setShowForm((prevShowForm) => !prevShowForm);
   };
-  const handleAddProfile = () => {
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('email', email);
-    formData.append('phone_number', phone_number);
-    formData.append('image', image);
-    formData.append('address', address);
-    // Assuming you have an API endpoint for creating a new user profile
-    // and a formData object containing the data for the new profile, which you've already defined
-    instance
-      .post(`${baseUrl}/api/user/user-profile/`, formData)
-      .then((response) => {
-        // Handle a successful profile creation, e.g., show a success message to the user
-        console.log('User profile created:', response.data);
-  
-        // After creating the profile, you can navigate to the user's profile page
-        // Use client-side routing to change the URL
-       navigate('/user-profile');
-      })
-      .catch((error) => {
-        // Handle errors, e.g., show an error message to the user
-        console.error('Error creating user profile:', error);
-      });
-  };
+  const handleBookingClick = () =>{
+    navigate('/my-bookings')
+  }
   return (
-    <div className="bg-gray-100 min-h-screen p-20 text-center">
-    <h1 className="text-4xl font-bold">User Profile</h1>
-    <div className="w-16 h-1 bg-blue-500 mx-auto mt-2"></div>
-    {image && <img src={image} alt="Profile" className="w-40 h-40 mx-auto rounded-full" />}
-    <input type="file" onChange={(e) => setImage(e.target.files[0])} className="mt-4 p-2 border border-gray-300 rounded" />
-    <input
-  type="text"
-  value={name}
-  onChange={(e) => setName(e.target.value)}
-  placeholder="Name"
-  className="mt-4 p-2 border border-gray-900 rounded w-full bg-white text-gray-900 focus:outline-none focus:shadow-outline"
-/>
-<input
-  type="text"
-  value={email}
-  onChange={(e) => setEmail(e.target.value)}
-  placeholder="Email"
-  className="mt-4 p-2 border border-gray-900 rounded w-full bg-white text-gray-900 focus:outline-none focus:shadow-outline"
-/>
-<input
-  type="text"
-  value={address}
-  onChange={(e) => setAddress(e.target.value)}
-  placeholder="Address"
-  className="mt-4 p-2 border border-gray-900 rounded w-full bg-white text-gray-900 focus:outline-none focus:shadow-outline"
-/>
+    <div style={{ height: "100vh", backgroundColor: "	#fcdad1" }}>
+      <div className="container ">
+        <div className="row gutters row-with-padding">
+          <div className="col-xl-3 col-lg-3 col-md-12 col-sm-12 col-12 "style={{ height: "60vh", backgroundColor: "	#fcdad1" }}>
+            <div className="card h-100">
+              <div className="card-body">
+                <div className="account-settings">
+                  <div className="user-profile">
+                    <div className="user-avatar with-border flex items-center justify-center">
+                      <img
+                        src="https://unsplash.com/photos/man-in-black-crew-neck-shirt-wearing-black-framed-eyeglasses-V_SGZ48bl20"
+                        alt="Maxwell Admin"
+                        className="w-24 h-24 mx-auto rounded-full border-2 border-gold transition-transform hover:scale-125"
+                      />
+                    </div>
+                    <h5 className="user-name">{first_name}</h5>
+                    <h6 className="user-email">{userData.email}</h6>
+                  </div>
+                  <div className="centered-container">
+                    <div className="row-container">
+                      <div className="colum" onClick={handleEditClick}>
+                        <i
+                          className="fas fa-edit "
+                          style={{ color: "blue" }}
+                        ></i>
+                        <span className="icon" style={{ marginLeft: "10px" }}>
+                          Edit
+                        </span>
+                      </div>
 
-<button onClick={handleUpdateProfile} className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-        Edit Profile
-      </button>
-      <br/>
-      <button onClick={handleAddProfile} className="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-        Add Profile
-      </button>
-  </div>
-);
+                      <div className="colum" onClick={handleBookingClick}>
+                        <i
+                          className="fas fa-edit "
+                          style={{ color: "blue" }}
+                        ></i>
+                        <span className="icon" style={{ marginLeft: "10px" }}>
+                          My Bookings
+                        </span>
+                      </div>
+                      {/* <div className="colum">
+                       <i className="fas fa-certificate"style={{color:"gold"}}></i> 
+                      <span className="icon"style={{marginLeft:"10px"}}>
+                       Badge
+                      </span>
+                      </div> */}
+                      {/* <div className="colum">
+                      <i className="fas fa-eye"></i>
+                      <span className="icon"style={{marginLeft:"10px"}}>
+                         Views
+                      </span>
+                      </div> */}
+                      {/* <div className="colum">
+                      <i className="fas fa-users"></i> 
+                      <span className="icon" style={{ paddingLeft: "10px" }}>
+                        Followers
+                      </span>
+                      </div> */}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <EditProfile />
+
+        </div>
+      </div>
+    </div>
+  );
 }
 
-
 export default UserProfile;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useEffect, useState } from "react";
+// import { useNavigate } from "react-router-dom";
+// import "./Style.css";
+// import  instance from "../../../utils/Axios";
+// import { toast } from "react-toastify";
+// import { Col, Container, Button, Form, Row, FormGroup } from "react-bootstrap";
+// import { Avatar, useToast } from "@chakra-ui/react";
+// import { SpinnerChakra } from "../../user/loadingState/SpinnerChakra";
+// import Cookies from "js-cookie";
+// import { baseUrl } from "../../../utils/constants";
+
+// export default function UserProfile() {
+//   const navigate = useNavigate();
+//   const [userData, setUserData] = useState([]);
+//   const [name, setName] = useState("");
+//   const [email, setEmail] = useState("");
+//   const [mobile, setMobile] = useState("");
+//   const [isEditable, setIsEditable] = useState(false);
+//   const [image, setImage] = useState();
+//   const [imageLoading, setImageLoading] = useState(false);
+//   const [isLoading, setIsLoading] = useState(false);
+//   const toasty = useToast();
+
+//   const handleInputChange = (e) => {
+//     const { name, value } = e.target;
+//     switch (name) {
+//       case "name":
+//         setName(value);
+//         break;
+//       case "email":
+//         setEmail(value);
+//         break;
+//       case "mobile":
+//         setMobile(value);
+//         break;
+//       default:
+//         break;
+//     }
+//   };
+
+//   const handleImage = async (pic) => {
+//     setImageLoading(true);
+//     if (pic === undefined) {
+//       toasty({
+//         title: "Please Select an Image !",
+//         status: "warning",
+//         duration: 3000,
+//         isClosable: true,
+//         position: "bottom",
+//       });
+//       return;
+//     }
+//     if (pic.type === "image/jpeg" || pic.type === "image/png") {
+//       const userImage = new FormData();
+//       userImage.append("file", pic);
+//       userImage.append("upload_preset", "chat-app");
+//       // userImage.append("cloud_name","istayprocess");
+//       // console.log(userImage)
+//       fetch("https://api.cloudinary.com/v1_1/istayprocess/image/upload", {
+//         method: "POST",
+//         body: userImage,
+//       })
+//         .then((res) => res.json())
+//         .then((value) => {
+//           setImage(value.url.toString());
+//           setImageLoading(false);
+//           toast.success("Image uploaded");
+//         })
+//         .catch((error) => {
+//           console.error(error);
+//           setImageLoading(false);
+//         });
+//     } else {
+//       toasty({
+//         title: "Please Select an Image",
+//         status: "warning",
+//         duration: 3000,
+//         isClosable: true,
+//         position: "bottom",
+//       });
+//       setImageLoading(false);
+//       return;
+//     }
+//   };
+
+//   const handleSave = async () => {
+//     setIsEditable(false);
+//     const dataToUpdate = {
+//       name,
+//       email,
+//       mobile,
+//       image: image,
+//     };
+//     const response = await instance.put("api/users/user-profile/", dataToUpdate, {
+//       params: { userId: userData[0]?._id },
+//     });
+//     if (response.data.updated) {
+//       setName(response.data.name);
+//       setEmail(response.data.email);
+//       setMobile(response.data.mobile);
+//       setImage(response.data.image);
+//       toast.success(`${name} Profile Updated`);
+//     }
+//   };
+
+//   useEffect(() => {
+//     const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+//     if (userInfo) {
+//       const fetchUserDetails = async () => {
+//         try {
+//           setIsLoading(true)
+//           const response = await instance.get(`${baseUrl}api/users/user-profile/`, {
+//             params: { userId: userInfo?.id },
+//           });
+//           if (response.data.userData) {
+//             setUserData(response?.data?.userData);
+
+
+//             setEmail(userData[0]?.email);
+//             setMobile(userData[0]?.mobile);
+//             setIsLoading(false)
+//           }
+//         } catch (error) {
+//           if (
+//             error.response &&
+//             error.response.data &&
+//             error.response.data.message
+//           ) {
+//             toast.error(error.response.data.message);
+//             if (error.response.data.redirect) {
+//               setTimeout(() => {
+//                 navigate(`${error.response.data.redirect}`);
+//               }, 1000);
+//             }
+//           } else {
+//             toast.error("Please Login");
+//             setTimeout(() => {
+//               navigate("/login");
+//             }, 3000);
+//           }
+//         }
+//       };
+//       fetchUserDetails();
+//     } else {
+//       navigate("/login");
+//     }
+//   }, [mobile]);
+//   return isLoading ? (
+//     <SpinnerChakra />
+//   ) : (
+//     <div>
+//       <div style={{ height: "100vh", display: "flex", alignItems: "start" }}>
+//         <Container fluid className="m-5">
+//           <Row>
+//             <Col sm={12} className="content">
+//               <div>
+//                 <h3 className="head text-white">
+//                   My Profile
+//                   <span style={{ marginLeft: "20px", alignItems: "center" }}>
+//                     <Avatar src={userData[0]?.pic} alt="User Avatar" />
+//                   </span>
+//                 </h3>
+
+//                 <div className="formDiv">
+//                   {userData ? (
+//                     <Form>
+//                       <Form.Group className="mb-3" controlId="formBasicName">
+//                         <Form.Label className="fields text-white">
+//                           Name
+//                         </Form.Label>
+//                         <Form.Control
+//                           type="text"
+//                           readOnly={!isEditable}
+//                           name="name"
+//                           value={name}
+//                           onChange={handleInputChange}
+//                         />
+//                       </Form.Group>
+//                       <Form.Group className="mb-3" controlId="formBasicEmail">
+//                         <Form.Label className="fields text-white">
+//                           Email
+//                         </Form.Label>
+//                         <Form.Control
+//                           type="email"
+//                           name="email"
+//                           readOnly
+//                           value={email}
+//                           onChange={handleInputChange}
+//                         />
+//                       </Form.Group>
+
+//                       <Form.Group
+//                         className="mb-3"
+//                         controlId="formBasicExperience"
+//                       >
+//                         <Form.Label className="fields text-white">
+//                           Mobile Number
+//                         </Form.Label>
+//                         <Form.Control
+//                           type="number"
+//                           readOnly={!isEditable}
+//                           name="mobile"
+//                           value={mobile}
+//                           onChange={handleInputChange}
+//                         />
+//                       </Form.Group>
+
+//                     {isEditable ? (
+//                           <Form.Group
+//                           className="mb-3"
+//                           controlId="formBasicExperience"
+//                         >
+//                           <Form.Label className="fields text-white">
+//                             User Profile Picture
+//                           </Form.Label>
+//                           <input
+//                             type="file"
+//                             readOnly={!isEditable}
+//                             accept="image/*"
+//                             // value={mobile}
+//                             onChange={(e) => handleImage(e.target.files[0])}
+//                           />
+//                         </Form.Group>
+//                     ):(
+//                       ""
+//                     )}
+
+//                       {isEditable ? (
+//                         <>
+//                           <Button
+//                             className="m-2"
+//                             variant="primary"
+//                             onClick={handleSave}
+//                             // isLoading={true}
+//                           >
+//                             Save
+//                           </Button>
+//                           <Button
+//                             variant="secondary"
+//                             onClick={() => setIsEditable(false)}
+//                           >
+//                             Cancel
+//                           </Button>
+//                         </>
+//                       ) : (
+//                         <Button
+//                           className="text-white"
+//                           variant="info"
+//                           onClick={() => setIsEditable(true)}
+//                         >
+//                           Edit
+//                         </Button>
+//                       )}
+
+//                       {/* <Button variant="primary" onClick={handleSave}>
+//                 Save
+//               </Button> */}
+//                     </Form>
+//                   ) : (
+//                     // If userData is not available, show loading or default content
+//                     <p>Loading user data...</p> // You can replace this with any loading content
+//                   )}
+//                 </div>
+//               </div>
+//             </Col>
+//           </Row>
+//         </Container>
+//         <Container
+//           fluid
+//           className="m-5"
+//           style={{ borderRadius: "20px", border: "1px solid silver" }}
+//         >
+//           <Row
+//             style={{
+//               backgroundColor: "#0f172a",
+//               height: "auto",
+//               width: "auto",
+//               borderRadius: "20px",
+//             }}
+//           >
+//             <Col sm={12} className="content">
+//               <div className="wallet-container">
+//                 <h1 className="head text-center text-white p-3">
+//                   My Wallet Balance
+//                 </h1>
+//                 <div className="wallet-balance">
+//                   <h1 className="balance-amount p-1 text-white text-center">
+//                     {/* Use text-center className */}
+//                     {userData[0]?.wallet?.balance || 0}
+//                   </h1>
+//                 </div>
+//               </div>
+//             </Col>
+//           </Row>
+//         </Container>
+//       </div>
+//     </div>
+//   );
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useState, useEffect } from 'react';
+// import axios from 'axios';
+// import { useNavigate } from 'react-router-dom';
+// import { Box, Button, Input, Image, Heading, Divider } from '@chakra-ui/react';
+// import { baseUrl } from '../../../utils/constants';
+// import instance from '../../../utils/Axios';
+// import ProfileSideBar from '../../user/Profile/ProfileSideBar'
+
+// function UserProfile() {
+//   const [name, setName] = useState('');
+//   const [email, setEmail] = useState('');
+//   const [phone_number, setPhoneNumber] = useState('');
+//   const [address, setAddress] = useState('');
+//   const [image, setImage] = useState(null);
+//   const navigate = useNavigate();
+
+//   useEffect(() => {
+//     instance.get(`${baseUrl}/api/user/user-profile`)
+//       .then((response) => {
+//         const userData = response.data;
+//         setName(userData.name);
+//         setEmail(userData.email);
+//         setPhoneNumber(userData.phone_number);
+//         setAddress(userData.address);
+//       })
+//       .catch((error) => {
+//         console.error('Error fetching user profile:', error);
+//       });
+//   }, []);
+
+//   const handleUpdateProfile = () => {
+//     const formData = new FormData();
+//     formData.append('name', name);
+//     formData.append('email', email);
+//     formData.append('phone_number', phone_number);
+//     formData.append('image', image);
+//     formData.append('address', address);
+
+//     instance.put(`${baseUrl}/api/user/user-profile/`, formData)
+//       .then((response) => {
+//         console.log('User profile updated:', response.data);
+//         navigate('/user-profile');
+//       })
+//       .catch((error) => {
+//         if (error.response && error.response.status === 401) {
+//           navigate('/login');
+//         } else {
+//           console.error('Error updating user profile:', error);
+//         }
+//       });
+//   };
+
+//   const handleAddProfile = () => {
+//     // Similar to your existing handleAddProfile logic
+//     // ...
+//   };
+
+//   return (
+//     <>
+//     <ProfileSideBar/>
+//     <Box p="20" bg="gray.100" minH="100vh" textAlign="center">
+//       <Heading as="h1" fontSize="4xl" fontWeight="bold">
+//         User Profile
+//       </Heading>
+     
+//       <Divider w="16" h="1" bg="blue.500" mx="auto" mt="2" />
+//       {image && <Image src={image} alt="Profile" w="40" h="40" mx="auto" rounded="full" />}
+//       <Input type="file" onChange={(e) => setImage(e.target.files[0])} mt="4" p="2" border="1px" borderColor="gray.300" rounded="md" />
+//       <Input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Name" mt="4" p="2" border="1px" borderColor="gray.900" rounded="md" />
+//       <Input type="text" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" mt="4" p="2" border="1px" borderColor="gray.900" rounded="md" />
+//       <Input type="text" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Address" mt="4" p="2" border="1px" borderColor="gray.900" rounded="md" />
+
+//       <Button onClick={handleUpdateProfile} mt="4" bg="blue.500" color="white" px="4" py="2" rounded="md" _hover={{ bg: 'blue.600' }}>
+//         Edit Profile
+//       </Button>
+//       <br />
+//       <Button onClick={handleAddProfile} mt="4" bg="green.500" color="white" px="4" py="2" rounded="md" _hover={{ bg: 'green.600' }}>
+//         Add Profile
+//       </Button>
+//     </Box>
+//     </>
+//   );
+// }
+
+// export default UserProfile;
+
 
 
 

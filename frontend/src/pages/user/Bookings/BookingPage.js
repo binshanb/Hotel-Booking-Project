@@ -2,26 +2,22 @@ import React ,{useState,useEffect}from 'react';
 import { loadRazorpayScript, createRazorpayOrder } from '../../../utils/razorpay';
 import {
   Box,
-  Text,
-  Heading,
+  Typography,
   Divider,
-  VStack,
   Button,
   Input,
   FormControl,
-  FormLabel,
-  Flex,
-  Spacer,
   Grid,
   GridItem,
-} from '@chakra-ui/react';
+  Paper,
+} from '@mui/material';
 import { baseUrl } from '../../../utils/constants';
 import instance from '../../../utils/Axios';
 // import { useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import jwtDecode from 'jwt-decode';
 import { useDispatch } from 'react-redux';
-import { setBookingInfo } from '../../../redux/slices/bookingslices/bookingslice';
+import { activateBookingInfo } from '../../../redux/slices/bookingslices/bookingslice';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -31,6 +27,7 @@ function BookingPage  ({ razorpayKey}) {
   const navigate = useNavigate();
 
   const [price,setPrice] = useState(0);
+  console.log(price,"price:");
   // const location = useLocation();
   // const queryParams = new URLSearchParams(location.search);
   const [bookingDetails, setBookingDetails] = useState(null);
@@ -38,7 +35,7 @@ function BookingPage  ({ razorpayKey}) {
   const userInfos = useSelector((state) => state.auth.userInfo);
   const [decodedUserInfo, setDecodedUserInfo] = useState({});
   const roomData = useSelector((state)=>state.room.roomInfo)
-  const bookingData = useSelector((state)=>state.booking.bookingData)
+  const bookingData = useSelector((state)=>state.booking.bookingInfo)
   console.log(bookingData.id,"id number:")
   console.log(roomData,"jndc.kljd")
   // const bookingRoomData = { id: bookingData.id };
@@ -63,9 +60,9 @@ function BookingPage  ({ razorpayKey}) {
     instance.get(`/api/booking/roombooking-page/${bookingData.id}/`)
       .then((response) => response.data)
         .then((data) => {
-          console.log('Booking data:',data);;
+          console.log('Booking data:',data[0]);
         setBookingDetails(data[0]);
-        dispatch(setBookingInfo(data[0]))
+        dispatch(activateBookingInfo(data[0]))
       })
       .catch(error => {
         console.error('Error fetching booking details:', error);
@@ -171,57 +168,62 @@ function BookingPage  ({ razorpayKey}) {
 
 
   return (
-    <Flex p={6}>
-      <Box flex={1} mr={6}>
-        <Heading as="h2" size="xl" mb={4}>
-           Booking Details
-        </Heading>
+    <Grid container spacing={3}>
+    <Grid item xs={12} md={6}>
+      <Paper elevation={3}>
+        <Typography variant="h4" gutterBottom>
+          Booking Details
+        </Typography>
 
         {/* Guest Details Card */}
-        <Box borderWidth="1px" borderRadius="lg" p={4} mb={6}>
-          <Heading as="h3" size="lg" mb={4}>
+        <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
+          <Typography variant="h5" gutterBottom>
             Guest Details
-          </Heading>
+          </Typography>
           {/* Input fields for guest details */}
-          <FormControl>
-            <FormLabel>Email</FormLabel>
-            <Input value={decodedUserInfo.email} isReadOnly />
+          <FormControl fullWidth>
+            <Input value={decodedUserInfo.email} readOnly />
           </FormControl>
           {/* Add more input fields for other guest details */}
-        </Box>
+        </Paper>
 
         {/* Room Details Card */}
-        <Box borderWidth="1px" borderRadius="lg" p={4} mb={6}>
-          <Heading as="h3" size="lg" mb={4}>
+        <Paper elevation={1} sx={{ p: 2 }}>
+          <Typography variant="h5" gutterBottom>
             Room Details
-          </Heading>
+          </Typography>
           {/* Display room details */}
-          <Text fontSize="lg">Room Name: {roomData ? roomData.title : ''}</Text>
-          <Text fontSize="lg">
+          <Typography variant="body1">
+            Room Name: {roomData ? roomData.title : ''}
+          </Typography>
+          <Typography variant="body1">
             Category: {roomData && roomData.category ? roomData.category.category_name : ''}
-          </Text>
+          </Typography>
           {/* Add more room details */}
-        </Box>
-      </Box>
+        </Paper>
+      </Paper>
+    </Grid>
 
-      {/* Price Summary Card */}
-      <Box flex={1}>
-        <Box borderWidth="1px" borderRadius="lg" p={4} mb={6}>
-          <Heading as="h3" size="lg" mb={4}>
-            Price Summary
-          </Heading>
-          {/* Display price details */}
-          <Text fontSize="lg">Price Per Night: {roomData ? roomData.price_per_night : ''}</Text>
-          <Divider />
-          <Text fontSize="lg">Total Price: ${price}</Text>
+    {/* Price Summary Card */}
+    <Grid item xs={12} md={6}>
+      <Paper elevation={3}>
+        <Typography variant="h4" gutterBottom>
+          Price Summary
+        </Typography>
+        {/* Display price details */}
+        <Typography variant="body1">
+          Price Per Night: {roomData ? roomData.price_per_night : ''}
+        </Typography>
+        <Divider />
+        <Typography variant="body1">Total Price: ${price}</Typography>
 
-          {/* Payment method using Razorpay */}
-          <Button colorScheme="blue" mt={4} onClick={() => handleHotelBookingPayment(bookingData.id, price , roomData)}>
-            Pay Now with Razorpay
-          </Button>
-        </Box>
-      </Box>
-    </Flex>
+        {/* Payment method using Razorpay */}
+        <Button variant="contained" color="primary" onClick={() => handleHotelBookingPayment(bookingData.id, price, roomData)} sx={{ mt: 2 }}>
+          Pay Now with Razorpay
+        </Button>
+      </Paper>
+    </Grid>
+  </Grid>
   );
 };
 export default BookingPage;

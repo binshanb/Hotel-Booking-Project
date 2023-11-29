@@ -1,19 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Box, Heading, Image, Text, Button, Flex, VStack, Spinner } from '@chakra-ui/react';
+import { Box, Typography, Button, Grid, CircularProgress } from '@mui/material';
 import { adminInstance } from '../../../utils/Axios';
 import { baseUrl } from '../../../utils/constants';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import {activateRoomInfo} from '../../../redux/slices/roomslices/roomSlice'
+import { makeStyles } from '@material-ui/core/styles';
+import ReviewList from '../Review/ReviewList';
+import {
+  Card,
+  CardContent,
+} from '@material-ui/core';
+
+import RoomImages from './RoomImages'; 
+
+
+
+
+const useStyles = makeStyles((theme) => ({
+  card: {
+    margin: theme.spacing(2),
+    border: '1px solid #ccc',
+    borderRadius: theme.spacing(1),
+    boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+    '&:hover': {
+      boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
+    },
+  },
+  cardImage: {
+    width: '100%',
+    height: '200px',
+    objectFit: 'cover',
+    borderRadius: theme.spacing(1),
+  },
+}));
 
 
 function RoomDetail(rooms) {
+
+  const classes = useStyles();
   const [roomData, setRoomData] = useState([]);
-  const[isRoomData, setIsRoomData] = useState(false)
+  const[isRoomData, setIsRoomData] = useState(false);
   const { id } = useParams();
   const navigate = useNavigate();
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
  
 
   
@@ -54,62 +85,76 @@ function RoomDetail(rooms) {
   return (
     <Box p={4} className="room-container">
       <Box textAlign="center" my={5}>
-        <Heading as="h1" size="xl" fontWeight="bold" color="gray.800">
+        <Typography variant="h4" fontWeight="bold" color="textPrimary">
           Room Detail
-        </Heading>
-        <Box w="16" h="1" bg="blue.500" mx="auto" mt={2}></Box>
+        </Typography>
+        <Box width="40px" height="2px" bgcolor="primary.main" mx="auto" mt={2}></Box>
       </Box>
 
       {!isRoomData && (
-        <Flex justifyContent="center">
-          <Spinner size="xl" color="blue.500" />
-        </Flex>
+        <Box display="flex" justifyContent="center">
+          <CircularProgress size={40} color="primary" />
+        </Box>
       )}
 
       {isRoomData && roomData && (
-        <Flex justifyContent="center" flexWrap="wrap">
-          <Box mb={4}>
-            <Box p={6} rounded="lg" boxShadow="md" border="1px" borderColor="gray.300" bg="white" pos="relative" _groupHover={{}}>
-              <Image src={`${baseUrl}${roomData.cover_image}`} alt={roomData.title} mb={4} h="64" w="full" objectFit="cover" rounded="lg" />
-              <Heading as="h2" fontSize="2xl" fontWeight="semibold" color="black" mb={2}>
-                {roomData.title}
-              </Heading>
-              <Text fontSize="lg" color="gray.700" mb={4}>
-                Category: {roomData.category ? roomData.category.category_name : 'Not available'}
-              </Text>
-              <Text fontSize="xl" fontWeight="semibold" color="black" mb={2}>
-                Price Per Day: ₹{roomData.price_per_night}
-              </Text>
-              <Text fontSize="lg" color="gray.900" mb={4}>
-                Description: {roomData.description}
-              </Text>
-              <Text fontSize="lg" color="gray.900" mb={4}>
-                Capacity: Maximum {roomData.capacity} people
-              </Text>
-              <Text fontSize="lg" color="gray.900" mb={4}>
-                Room Size: {roomData.room_size} sq.ft
-              </Text>
-              <Text fontSize="lg" color="gray.900" mb={4}>
-                Meals Included
-              </Text>
-              <Text fontSize="lg" color="gray.900" mb={4}>
-                Features: {roomData.features ? roomData.features.map((feature) => feature.name).join(', ') : 'Not available'}
-              </Text>
-            </Box>
-          </Box>
-          <VStack alignItems="center" justifyContent="center">
-            <Button onClick={handleBooking} mt={4} px={6} py={3} bg="blue.500" color="white" rounded="md" _hover={{ bg: 'blue.600' }}>
-              Book Now
-            </Button>
-            <Button onClick={handleRooms} mt={4} px={6} py={3} bg="blue.300" color="black" rounded="md" border="1px" borderColor="gray.500" _hover={{ bg: 'gray.200' }}>
-              Back to Room List
-            </Button>
-          </VStack>
-        </Flex>
-      )}
+        // <Grid container justifyContent="center" spacing={2}>
+       <Box mb={4}>
+      <Card className={classes.card}>
+        <img
+          src={`${baseUrl}${roomData.cover_image}`}
+          alt={roomData.title}
+          className={classes.cardImage}
+        />
+           {/* Include RoomImages component */}
+           {isRoomData && roomData && (
+            <RoomImages roomData={roomData} />
+    )}
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            {roomData.title}
+          </Typography>
+          <Typography variant="body1" color="textSecondary" gutterBottom>
+            Category: {roomData.category ? roomData.category.category_name : 'Not available'}
+          </Typography>
+          <Typography variant="subtitle1" color="textPrimary" gutterBottom>
+            Price Per Day: ₹{roomData.price_per_night}
+          </Typography>
+          <Typography variant="body1" color="textPrimary" gutterBottom>
+            Description: {roomData.description}
+          </Typography>
+          <Typography variant="body1" color="textPrimary" gutterBottom>
+            Capacity: Maximum {roomData.capacity} people
+          </Typography>
+          <Typography variant="body1" color="textPrimary" gutterBottom>
+            Room Size: {roomData.room_size} sq.ft
+          </Typography>
+          <Typography variant="body1" color="textPrimary" gutterBottom>
+            Meals Included
+          </Typography>
+          <Typography variant="body1" color="textPrimary" gutterBottom>
+            Features: {roomData.features ? roomData.features.map((feature) => feature.name).join(', ') : 'Not available'}
+          </Typography>
+        </CardContent>
+        
+      </Card>
     </Box>
+
+  )
+}  
+
+<ReviewList/>   
+<Box mt={4} display="flex" justifyContent="center">
+        <Button onClick={handleBooking} variant="contained" color="primary" size="large">
+           Book Now
+        </Button>
+        <Button onClick={handleRooms} variant="outlined" color="primary" size="large">
+          Back to Room List
+         </Button>
+      </Box>
+    </Box> 
   );
-}
+};
 export default RoomDetail;
 
 
@@ -120,6 +165,95 @@ export default RoomDetail;
 
 
 
+// import React, { useState, useEffect } from 'react';
+// import { useParams } from 'react-router-dom';
+// import { Box, Typography, Button, Grid, CircularProgress } from '@mui/material';
+// import { useDispatch } from 'react-redux';
+// import { activateRoomInfo } from '../../../redux/slices/roomslices/roomSlice'; // Make sure to import your Redux-related dependencies
+
+// function RoomDetail() {
+//   const [isRoomData, setIsRoomData] = useState(false);
+//   const [roomData, setRoomData] = useState(null);
+//   const { roomId } = useParams();
+//   const dispatch = useDispatch();
+
+//   useEffect(() => {
+//     // Fetch room data using Material-UI compatible method (similar to Axios)
+//     // Update setIsRoomData and setRoomData with fetched data
+//     // Example: 
+//     // const fetchRoomData = async () => {
+//     //   try {
+//     //     const response = await yourFetchMethod(`${baseUrl}/rooms/${roomId}`);
+//     //     const data = await response.json();
+//     //     setRoomData(data);
+//     //     setIsRoomData(true);
+//     //   } catch (error) {
+//     //     console.error('Error fetching room data:', error);
+//     //   }
+//     // };
+//     // fetchRoomData();
+//   }, [roomId]);
+
+//   const handleBooking = () => {
+//     // Handle booking functionality
+//   };
+
+//   const handleRooms = () => {
+//     // Handle navigation back to room list
+//   };
+
+//   return (
+//     <Box p={4} className="room-container">
+//       <Box textAlign="center" my={5}>
+//         <Typography variant="h4" fontWeight="bold" color="textPrimary">
+//           Room Detail
+//         </Typography>
+//         <Box width="40px" height="2px" bgcolor="primary.main" mx="auto" mt={2}></Box>
+//       </Box>
+
+//       {!isRoomData && (
+//         <Box display="flex" justifyContent="center">
+//           <CircularProgress size={40} color="primary" />
+//         </Box>
+//       )}
+
+//       {isRoomData && roomData && (
+//         <Grid container justifyContent="center" spacing={2}>
+//           <Grid item xs={12} md={6}>
+//             {/* Replace Image component with Material-UI Image component */}
+//             {/* For simplicity, consider using <img> or Material-UI Image component */}
+//           </Grid>
+//           <Grid item xs={12} md={6}>
+//             <Box p={2}>
+//               <Typography variant="h5" fontWeight="bold" color="textPrimary" mb={2}>
+//                 {roomData.title}
+//               </Typography>
+//               {/* Render other room details using Typography components */}
+//               {/* Example: */}
+//               {/* <Typography variant="body1" color="textSecondary" mb={2}>
+//                 Category: {roomData.category ? roomData.category.category_name : 'Not available'}
+//               </Typography> */}
+//             </Box>
+//             {/* Render other room details using Typography components */}
+//             {/* Use Typography components for other room details */}
+//           </Grid>
+//         </Grid>
+//       )}
+
+//       {/* Render buttons */}
+//       <Box mt={4} display="flex" justifyContent="center">
+//         <Button onClick={handleBooking} variant="contained" color="primary" size="large">
+//           Book Now
+//         </Button>
+//         <Button onClick={handleRooms} variant="outlined" color="primary" size="large">
+//           Back to Room List
+//         </Button>
+//       </Box>
+//     </Box>
+//   );
+// }
+
+// export default RoomDetail;
 
 
 

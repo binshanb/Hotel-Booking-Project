@@ -8,7 +8,7 @@ from django.contrib.auth import authenticate
 from phonenumber_field.serializerfields import PhoneNumberField
 from django.contrib.humanize.templatetags import humanize
 from .models import Role
-from .models import UserProfile
+
 
 # user register serializer
 
@@ -89,8 +89,8 @@ class CustomTokenRefreshSerializer(TokenObtainPairSerializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = UserProfile
-        fields = '__all__'
+        model = User
+        fields = ['first_name','address','city', 'state', 'country']
 
 #<-------------------User Side End-------------->
 
@@ -103,11 +103,17 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id','first_name','last_name','email','phone_number','last_login_display','is_active','image','role','date_joined']
+        fields = ['id','first_name','address','city','state','is_active','image','country','date_joined','last_login_display']
 
     def get_last_login_display(self, obj):
         return humanize.naturaltime(obj.last_login)
     
+
+class ResetPasswordSerializer(serializers.Serializer):
+    password = serializers.CharField(max_length=128)
+    
+class ForgotPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
 
     
 

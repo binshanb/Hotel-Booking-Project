@@ -6,17 +6,7 @@ import { useLoginMutation } from "../../redux/slices/userslices/userApiSlice";
 import { setCredentials } from "../../redux/slices/userslices/authSlice";
 import { ToastContainer,toast  } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import {
-  Box,
-  Button,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  Input,
-  Link,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { Box, Button, FormControl, FormHelperText, Input, Typography } from '@mui/material';
 
 
 function UserLogin() {
@@ -85,59 +75,56 @@ function UserLogin() {
     return errors;
   };
   return (
-    <Box
-      className="login template d-flex justify-content-center align-items-center vh-100 bg-blue-200"
-      p={4}
-    >
-      <Box className="form_container p-5 rounded bg-white">
-        <VStack as="form" onSubmit={submitHandler} spacing={4} align="center">
-          <Text as="h3" className="text-center">
-            Sign In
-          </Text>
-          <FormControl isInvalid={!!formErrors.email}>
-            <Input
-              type="email"
-              value={email}
-              placeholder="Enter Email"
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <FormErrorMessage>{formErrors.email}</FormErrorMessage>
-          </FormControl>
-          <FormControl isInvalid={!!formErrors.password}>
-            <Input
-              type="password"
-              value={password}
-              placeholder="Enter password"
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <FormErrorMessage>{formErrors.password}</FormErrorMessage>
-          </FormControl>
+    <Box className="login template d-flex justify-content-center align-items-center vh-100 bg-blue-200" p={4}>
+    <Box className="form_container p-5 rounded bg-white">
+      <form onSubmit={submitHandler}>
+        <Typography variant="h5" align="center" gutterBottom>
+          Sign In
+        </Typography>
+        <FormControl fullWidth sx={{ mt: 2 }} error={!!formErrors.email}>
+          <Input
+            type="email"
+            value={email}
+            placeholder="Enter Email"
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <FormHelperText>{formErrors.email}</FormHelperText>
+        </FormControl>
+        <FormControl fullWidth sx={{ mt: 2 }} error={!!formErrors.password}>
+          <Input
+            type="password"
+            value={password}
+            placeholder="Enter password"
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <FormHelperText>{formErrors.password}</FormHelperText>
+        </FormControl>
 
-          <Button type="submit" colorScheme="blue">
-            Sign In
-          </Button>
-          <Box textAlign="end" mt={2}>
-            <Text className="link">
-              <RouterLink to="/forgotPassword">Forgot Password ?</RouterLink>{" "}
-              |
-              <RouterLink to="/signup" className="ms-2">
-                Sign up
-              </RouterLink>
-            </Text>
-          </Box>
-        </VStack>
-        <ToastContainer />
-        <Box className="links-container text-end mt-2">
-          <Text>
-            <RouterLink to="/otpLoginEmail" className="ms-2">
-              Otp Login
+        <Button variant="contained" type="submit" color="primary" fullWidth sx={{ mt: 2 }}>
+          Sign In
+        </Button>
+        <Box textAlign="end" mt={2}>
+          <Typography>
+            <RouterLink to="/forgotPassword">Forgot Password ?</RouterLink> |
+            <RouterLink to="/signup" className="ms-2">
+              Sign up
             </RouterLink>
-          </Text>
+          </Typography>
         </Box>
+      </form>
+      {/* ToastContainer (assuming it's from a library like react-toastify) doesn't have a direct equivalent in Material-UI */}
+      <Box className="links-container text-end mt-2">
+        <Typography>
+          <RouterLink to="/otpLoginEmail" className="ms-2">
+            Otp Login
+          </RouterLink>
+        </Typography>
       </Box>
     </Box>
-  );
-}
+  </Box>
+);
+};
+
 
 
 export default UserLogin;

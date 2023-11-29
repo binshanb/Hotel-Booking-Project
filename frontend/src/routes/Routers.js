@@ -23,12 +23,16 @@ import RoomDetail from '../pages/user/Rooms/RoomDetail'
 import BookingForm from '../components/Bookings/BookingForm'
 import BookingPage from '../pages/user/Bookings/BookingPage'
 import BookingList from '../pages/admin/Booking/BookingList'
-import BookingPayment from '../pages/user/Bookings/BookingSuccessPage'
 import RoomFeatureList from '../pages/admin/Features/RoomFeatureList'
-import DateSelectionForm from '../pages/user/Bookings/DateSelectionForm'
-import BookingHistory from '../pages/admin/Booking/BookingHistory'
+import BookingHistory from '../pages/admin/Booking/AdminBookingStatusChange'
 import RoomFilter from '../pages/user/Rooms/RoomFilter';
 import BookingSuccessPage from '../pages/user/Bookings/BookingSuccessPage'
+import MyBookingsPage from '../pages/user/Profile/MyBookings'
+import CancelMyBooking from '../pages/user/Profile/CancelMyBooking'
+import AvailableRoomsPage from '../pages/user/Bookings/AvailableRoomsPage'
+import ReviewForm from '../pages/user/Review/ReviewForm'
+import ReviewList from '../pages/user/Review/ReviewList'
+import ResetPassword from '../pages/user/ResetPassword'
 
 
 
@@ -63,9 +67,10 @@ const Routers = () => {
       <Route path='' element={<RouteUser/>} >
         <Route path="/" element={<HomePage/>}/>
          
-        <Route path='/user-profile' element={<UserProfile/>} />
+        <Route path='/user/user-profile' element={<UserProfile/>} />
         
         <Route path='/logout' element={<Logout/>} />
+        <Route path='/reset-password' element={<ResetPassword/>} />
 
          {/* <-----------Rooms------------> */}
 
@@ -76,15 +81,25 @@ const Routers = () => {
         <Route path='/contact' element={<Contact/>} />
         <Route path='/room-detail/:id' element={<RoomDetail/>} />
         <Route path='/room-filter' element={<RoomFilter/>} />
+  
+
+        
         
 
 
         {/* <-----------Booking------------> */}
 
+
+        <Route path='/get-available-rooms' element={<AvailableRoomsPage/>} />
         <Route path='/add-roombooking' element={<BookingForm/>} />
-        <Route path='/roombooking-page/:bookingId' element={<BookingPage/>} />
+        <Route path='/roombooking-page/:id' element={<BookingPage/>} />
         <Route path='/booking-success' element={<BookingSuccessPage/>} />
-        <Route path='/dateselection-form' element={<DateSelectionForm/>} />
+        <Route path='/my-bookings/:userId' element={<MyBookingsPage/>} />
+        <Route path='/add-reviews' element={<ReviewForm/>} />
+        <Route path='/reviews' element={<ReviewList/>} />
+        <Route path='/roombooking-page/:bookingId/cancel-booking' element={<CancelMyBooking/>} />
+        
+        
         {/* <Route path='/my-bookings' element={<MyBookings/>}/> */}
 
 
@@ -123,8 +138,9 @@ const Routers = () => {
         <Route path='/admin/room-feature' element={<RoomFeatureList/>} />
       
 
-        <Route path='/admin/booking-list'    element= {<BookingList/>} />
-        <Route path='/admin/booking-history'    element= {<BookingHistory/>} />
+        <Route path='/admin/booking-list' element= {<BookingList/>} />
+        <Route path='/admin/booking-history'element= {<BookingHistory/>} />
+
 
       </Route>
       

@@ -2,12 +2,11 @@ import React from 'react';
 
 import {
   Box,
-  Text,
-  Heading,
+  Typography,
   Divider,
-  VStack,
   Button,
-} from '@chakra-ui/react';
+  Container,
+} from '@mui/material';
 
 import { useLocation,Link } from 'react-router-dom'; 
 
@@ -19,24 +18,28 @@ const BookingSuccessPage = () => {
   console.log(bookingId,"dataa")
 
   return (
-    <Box p={6}>
-      <VStack spacing={6} align="center">
-        <Heading as="h1" size="xl">
+    <Container maxWidth="sm">
+      <Box p={6}>
+        <Typography variant="h4" align="center">
           Booking Successful!
-        </Heading>
+        </Typography>
         <Divider />
-        <Text fontSize="lg">
+        <Typography variant="body1" align="center" mt={2}>
           Thank you for your booking. Your booking ID is: {bookingId}
-        </Text>
-        <Text fontSize="lg">
+        </Typography>
+        <Typography variant="body1" align="center" mt={2}>
           Your room has been successfully booked. We hope you enjoy your stay!
-        </Text>
+        </Typography>
         {/* Add more details or options/buttons as needed */}
-        <Link to="/">
-        <Button colorScheme="blue">Back to Home</Button>
-        </Link>
-      </VStack>
-    </Box>
+        <Box mt={4} display="flex" justifyContent="center">
+          <Link to="/" style={{ textDecoration: 'none' }}>
+            <Button variant="contained" color="primary">
+              Back to Home
+            </Button>
+          </Link>
+        </Box>
+      </Box>
+    </Container>
   );
 };
 
