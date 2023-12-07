@@ -8,6 +8,7 @@ from django.contrib.auth import authenticate
 from phonenumber_field.serializerfields import PhoneNumberField
 from django.contrib.humanize.templatetags import humanize
 from .models import Role
+from django.utils.timesince import timesince
 
 
 # user register serializer
@@ -108,12 +109,83 @@ class UserSerializer(serializers.ModelSerializer):
     def get_last_login_display(self, obj):
         return humanize.naturaltime(obj.last_login)
     
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
 
-class ResetPasswordSerializer(serializers.Serializer):
-    password = serializers.CharField(max_length=128)
+
+class EmailVerificationSerializer(serializers.ModelSerializer):
+    token = serializers.CharField(max_length=555)
+    class Meta:
+        model = User
+        fields = ['token']
     
+
+
 class ForgotPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()
+
+
+class PasswordResetSerializer(serializers.Serializer):
+    new_password = serializers.CharField(
+        style={'input_type': 'password'},
+        write_only=True
+    )
+    confirm_new_password = serializers.CharField(
+        style={'input_type': 'password'},
+        write_only=True
+    )
+
+    def validate(self, data):
+        new_password = data.get('new_password')
+        confirm_new_password = data.get('confirm_new_password')
+
+        # Check if the passwords match
+        if new_password != confirm_new_password:
+            raise serializers.ValidationError("Passwords do not match.")
+
+        # Check if the password length is at least 8 characters
+        if len(new_password) < 8:
+            raise serializers.ValidationError("Password must be at least 8 characters long.")
+
+        # Check if there are spaces in the password
+        if ' ' in new_password:
+            raise serializers.ValidationError("Password cannot contain spaces.")
+
+        return data
+
+
+
+
+
+
+# class ResetPasswordSerializer(serializers.Serializer):
+#     email = serializers.EmailField()
+#     new_password = serializers.CharField(min_length=8)  # Define password validation rules if needed
+
+#     def validate_email(self, value):
+#         # Custom validation for the existence of the email in your system
+#         # You can add your own logic to check if the email exists in your user database
+#         from .models import CustomUser  # Import your user model
+#         try:
+#             user = CustomUser.objects.get(email=value)
+#         except CustomUser.DoesNotExist:
+#             raise serializers.ValidationError("User with this email does not exist")
+#         return value
+    
+# class ForgotPasswordSerializer(serializers.Serializer):
+#     email = serializers.EmailField()
+
+#     def validate_email(self, value):
+#         try:
+#             # Check if a user with the provided email exists in your User model
+#             user = User.objects.get(email=value)
+#         except User.DoesNotExist:
+#             raise serializers.ValidationError("User with this email does not exist")
+
+#         return value
+    
+
 
     
 
@@ -121,3 +193,41 @@ class ForgotPasswordSerializer(serializers.Serializer):
 
 #<--------------Admin Side End------------------------->
 
+
+#<------------------Chat Starts------------------------->
+
+
+
+#<----------------------Chat Ends------------------------------------>
+
+
+# class ProfileSerializer(serializers.ModelSerializer):
+
+#     class Meta:
+#         model = Profile
+#         fields = [ 'id',  'user',  'full_name', 'image' ]
+    
+#     def __init__(self, *args, **kwargs):
+#         super(ProfileSerializer, self).__init__(*args, **kwargs)
+#         request = self.context.get('request')
+#         if request and request.method=='POST':
+#             self.Meta.depth = 0
+#         else:
+#             self.Meta.depth = 3
+
+
+# class MessageSerializer(serializers.ModelSerializer):
+#     reciever_profile = ProfileSerializer(read_only=True)
+#     sender_profile = ProfileSerializer(read_only=True)
+
+#     class Meta:
+#         model = ChatMessage
+#         fields = ['id','sender', 'reciever', 'reciever_profile', 'sender_profile' ,'message', 'is_read', 'date']
+    
+#     def __init__(self, *args, **kwargs):
+#         super(MessageSerializer, self).__init__(*args, **kwargs)
+#         request = self.context.get('request')
+#         if request and request.method=='POST':
+#             self.Meta.depth = 0
+#         else:
+#             self.Meta.depth = 2

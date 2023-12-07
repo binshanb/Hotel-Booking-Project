@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import AccountUser
 
-class CustomUserAdmin(UserAdmin):
+class AccountUserAdmin(UserAdmin):
     list_display = ('id', 'email', 'phone_number', 'is_active', 'role', 'is_superuser')
     search_fields = ('email', 'phone_number')
     
@@ -17,10 +17,18 @@ class CustomUserAdmin(UserAdmin):
        
     )
 
-admin.site.register(AccountUser, CustomUserAdmin)
 
-class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'address')
-    search_fields = ('user__first_name', 'user__last_name', 'user__email', 'address')
+
+# class UserProfileAdmin(admin.ModelAdmin):
+#     list_display = ('user', 'address')
+#     search_fields = ('user__first_name', 'user__last_name', 'user__email', 'address')
+
+
+class ChatMessageAdmin(admin.ModelAdmin):
+    list_editable = ["is_read"]
+    list_display = ["sender","receiver","message","is_read"]
+
+admin.site.register(AccountUser,AccountUserAdmin)
+
 
 

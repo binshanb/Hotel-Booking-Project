@@ -244,7 +244,7 @@ export default function EditRoomModal({
           </div>
           {/* Input field for cover image */}
           <div className="image-input mt-4">
-            {roomData.cover_image ? (
+            {roomData.cover_image && roomData.cover_image instanceof Blob ? (
               <div className="image-preview-container">
                 <img
                   src={URL.createObjectURL(roomData.cover_image)}

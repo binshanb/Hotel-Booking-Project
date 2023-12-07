@@ -31,13 +31,12 @@ function BookingPage  ({ razorpayKey}) {
   // const location = useLocation();
   // const queryParams = new URLSearchParams(location.search);
   const [bookingDetails, setBookingDetails] = useState(null);
-  console.log(bookingDetails,"boking");
+
   const userInfos = useSelector((state) => state.auth.userInfo);
   const [decodedUserInfo, setDecodedUserInfo] = useState({});
   const roomData = useSelector((state)=>state.room.roomInfo)
-  const bookingData = useSelector((state)=>state.booking.bookingInfo)
-  console.log(bookingData.id,"id number:")
-  console.log(roomData,"jndc.kljd")
+  const bookingData = useSelector((state)=>state.booking.bookingInfo);
+  
   // const bookingRoomData = { id: bookingData.id };
  
 
@@ -56,40 +55,40 @@ function BookingPage  ({ razorpayKey}) {
   //   }
   // },[dispatch,bookingId]);
 
-  useEffect(() => {
-    instance.get(`/api/booking/roombooking-page/${bookingData.id}/`)
-      .then((response) => response.data)
-        .then((data) => {
-          console.log('Booking data:',data[0]);
-        setBookingDetails(data[0]);
-        dispatch(activateBookingInfo(data[0]))
-      })
-      .catch(error => {
-        console.error('Error fetching booking details:', error);
-      });
-  }, [bookingData.id]);
+  // useEffect(() => {
+  //   instance.get(`/api/booking/roombooking-page/${bookingData.id}/`)
+  //     .then((response) => response.data)
+  //       .then((data) => {
+  //         console.log('Booking data:',data[0]);
+  //       setBookingDetails(data[0]);
+  //       dispatch(activateBookingInfo(data[0]))
+  //     })
+  //     .catch(error => {
+  //       console.error('Error fetching booking details:', error);
+  //     });
+  // }, [bookingData.id]);
   
 
   // Calculate price based on booking details
   useEffect(() => {
     if (bookingData) {
       const checkInDate = new Date(bookingData.check_in);
-      console.log(checkInDate,"check in");
+
       const checkOutDate = new Date(bookingData.check_out);
       const numberOfGuests = parseInt(bookingData.number_of_guests);
-   console.log(numberOfGuests,"guests");
+  
       const oneDay = 24 * 60 * 60 * 1000; // Number of milliseconds in a day
       const diffDays = Math.round(Math.abs((checkOutDate - checkInDate) / oneDay));
-      console.log(diffDays,"diff");
+    
 
       const pricePerNight = roomData.price_per_night; // Replace with actual price per night
-      console.log(pricePerNight,"per");
+
       const calculatedPrice = diffDays * pricePerNight * numberOfGuests;
       
-      console.log(calculatedPrice,"total");
+
       setPrice(calculatedPrice)
-      console.log(setPrice(calculatedPrice),"log");
-      setPrice(calculatedPrice)
+  
+
     }
   }, [bookingData,roomData]);
   // Retrieve other form data fields similarly
@@ -124,7 +123,7 @@ function BookingPage  ({ razorpayKey}) {
         handler: function (response) { 
           // Handle successful payment response
           console.log('Payment successful:', response);
-          const bookingId = bookingData.id;
+          // const bookingId = bookingData.id;
          navigate('/booking-success',{bookingId})
           // Proceed to book the room after successful payment
           // bookRoom(roomData, bookingData);
@@ -138,7 +137,7 @@ function BookingPage  ({ razorpayKey}) {
       const razorpay = new window.Razorpay(options);
       razorpay.open();
     } catch (error) {
-      console.error('Error handling Hotel Booking Razorpay payment:', error);
+      console.error('Error handling Hotel Booking Razorpay payment:', error); 
     }
   };
 
@@ -218,7 +217,7 @@ function BookingPage  ({ razorpayKey}) {
         <Typography variant="body1">Total Price: ${price}</Typography>
 
         {/* Payment method using Razorpay */}
-        <Button variant="contained" color="primary" onClick={() => handleHotelBookingPayment(bookingData.id, price, roomData)} sx={{ mt: 2 }}>
+        <Button variant="contained" color="primary" onClick={() => handleHotelBookingPayment(bookingId, price,roomData)} sx={{ mt: 2 }}>
           Pay Now with Razorpay
         </Button>
       </Paper>

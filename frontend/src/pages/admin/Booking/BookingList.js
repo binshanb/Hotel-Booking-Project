@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import adminInstance from '../../../utils/Axios';
 import instance from '../../../utils/Axios';
 import { useSelector } from 'react-redux';
 import AdminBookingStatusChange from './AdminBookingStatusChange';
@@ -16,26 +17,27 @@ import {
   MenuItem,
   Button,
 } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
+
 import { baseUrl } from '../../../utils/constants';
 
 const BookingsList = () => {
-  const [bookings, setBookings] = useState([]);
-  const bookingData = useSelector((state) => state.booking.bookingInfo);
-
+  // const [bookings, setBookings] = useState([]);
+  // const bookingData = useSelector((state) => state.booking.bookingInfo);
  
-    const fetchBookings = async () => {
+  const [roomBookings, setRoomBookings] = useState([]);
+
+  useEffect(() => {
+    const fetchRoomBookings = async () => {
       try {
-        const response = await instance.get(`${baseUrl}/api/booking/admin/booking-list`);
-        setBookings(response.data); // Set bookings state with fetched data
+        const response = await instance.get(`${baseUrl}/api/booking/booking-list/`);
+        setRoomBookings(response.data);
       } catch (error) {
-        console.error('Error fetching bookings:', error);
+        console.error('Error fetching room bookings:', error);
       }
     };
 
-    useEffect(() => {
-      fetchBookings();
-    }, []);
+    fetchRoomBookings();
+  }, []);   
 
   // const handleCancel = async (bookingId) => {
   //   try {
@@ -46,26 +48,34 @@ const BookingsList = () => {
   //   }
   // };
 
-  const handleStatusChange = async (event, bookingId) => {
-    const newStatus = event.target.value;
-    try {
-      await instance.put(`${baseUrl}/api/booking/change-booking-status/${bookingId}/`, { booking_status: newStatus });
-      // Fetch bookings again to update the data after changing the status
-      fetchBookings();
-    } catch (error) {
-      console.error('Error updating status:', error);
-    }
-  };
+ 
 
-  const handleCheckout = async (roomId) => {
-    try {
-      const response = await instance.put(`/api/booking/roomlistuser/${roomId}/`);
-      // Perform other operations upon successful checkout, if needed
-      console.log(response.data); // Log the response
-    } catch (error) {
-      console.error('Error during checkout:', error);
+
+const handleCheckout = async () => {
+  try {
+    const response = await adminInstance.put(`${baseUrl}/api/booking/admin/room-checkout/${roomBookings.id}/`, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ newStatus: 'completed' }), // Change the status value as needed
+    });
+
+    if (response.ok) {
+
+      alert("Successfully Checked Out")
+      // Status updated successfully in the backend, update frontend state
+      const updatedStatus = 'completed'; // Get the updated status from the response
+      // Update your React state or Redux store with the updatedStatus
+      // This update will reflect the new status in your UI
+    } else {
+      // Handle error scenario
+      console.error('Failed to update status:', response.statusText);
     }
-  };
+  } catch (error) {
+    console.error('Error updating status:', error);
+  }
+};
+
 
   return (
     <Box p={4}>
@@ -77,32 +87,49 @@ const BookingsList = () => {
         <TableHead>
           <TableRow>
             <TableCell>Booking ID</TableCell>
+            <TableCell>Room</TableCell>
+            <TableCell>Booked by</TableCell>
             <TableCell>Check-in</TableCell>
             <TableCell>Check-out</TableCell>
             <TableCell>Booking Status</TableCell>
+            <TableCell>Current Status</TableCell>
             {/* <TableCell>Room Name</TableCell>
             <TableCell>User Email</TableCell> */}
             {/* <TableCell>Action</TableCell> */}
           </TableRow>
         </TableHead>
         <TableBody>
-          {bookings.map((booking) => (
+        {roomBookings.map((booking) => (
             <TableRow key={booking.id}>
               <TableCell>{booking.id}</TableCell>
+              <TableCell>{booking.room_title || 'N/A'}</TableCell>  
+              <TableCell>{booking.user_email || 'N/A'}</TableCell>     
+              
               <TableCell>{booking.check_in}</TableCell>
               <TableCell>{booking.check_out}</TableCell>
               <TableCell>
-                <AdminBookingStatusChange
-                  bookingId={booking.id}
-                  initialStatus={booking.booking_status}
-                />
-              </TableCell>
+        <AdminBookingStatusChange
+          bookingId={booking.id}
+          initialStatus={booking.booking_status}
+        />
+      </TableCell>
+      <TableCell>{booking.booking_status}</TableCell>
               {/* <TableCell>{booking.room.title}</TableCell>
               <TableCell>{booking.user.email}</TableCell> */}
               <TableCell>
-                  <Button variant="contained" color="primary" onClick={() => handleCheckout(booking.id)}>
+              {booking.booking_status === 'completed' ? (
+                  'Checked Out'
+                ) : (
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => handleCheckout(booking.id)}
+                    disabled={booking.booking_status === 'completed'} // Disable button if already completed
+                  >
                     Checkout
                   </Button>
+                )}
+           
                 </TableCell>
               {/* <TableCell>
                 <IconButton

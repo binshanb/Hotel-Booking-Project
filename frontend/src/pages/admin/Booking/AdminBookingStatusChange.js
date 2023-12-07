@@ -1,25 +1,26 @@
-import React, { useState, useEffect } from 'react';
+// AdminBookingStatusChange.js
+
+import React, { useState } from 'react';
 import instance from '../../../utils/Axios';
 import { baseUrl } from '../../../utils/constants';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 
-
-
-const AdminBookingStatusChange = ({ bookingId, initialStatus }) => {
-
-
-  
+const AdminBookingStatusChange = ({ bookingId, initialStatus, onUpdateStatus }) => {
   const [bookingStatus, setBookingStatus] = useState(initialStatus);
-  
 
   const handleStatusChange = async (e) => {
     const newStatus = e.target.value;
     setBookingStatus(newStatus);
 
     try {
-      await instance.put(`${baseUrl}/api/booking/change-booking-status/${bookingId}/`, { booking_status: newStatus });
-      // Optionally, perform additional actions after successful status change
+      // Update the booking status via API call immediately
+      await instance.patch(`${baseUrl}/api/booking/admin/change-booking-status/${bookingId}/`, {
+        booking_status: newStatus,
+      });
+
+      // After successful update, inform the parent component
+      onUpdateStatus(bookingId, newStatus);
     } catch (error) {
       console.error('Error updating status:', error);
       // Handle error scenario
@@ -27,9 +28,8 @@ const AdminBookingStatusChange = ({ bookingId, initialStatus }) => {
   };
 
   return (
-    
-          <Select
-      value={initialStatus}
+    <Select
+      value={bookingStatus}
       onChange={handleStatusChange}
       sx={{
         margin: 1,
@@ -37,17 +37,17 @@ const AdminBookingStatusChange = ({ bookingId, initialStatus }) => {
         // add any other CSS properties here
       }}
     >
-
-        <MenuItem value="pending">Pending</MenuItem>
-        <MenuItem value="confirmed">Confirmed</MenuItem>
-        <MenuItem value="cancelled">Cancelled</MenuItem>
-        <MenuItem value="completed">Completed</MenuItem>
-      </Select>
-    
-  )
+      <MenuItem value="pending">Pending</MenuItem>
+      <MenuItem value="confirmed">Confirmed</MenuItem>
+      <MenuItem value="cancelled">Cancelled</MenuItem>
+      <MenuItem value="completed">Completed</MenuItem>
+    </Select>
+  );
 };
 
 export default AdminBookingStatusChange;
+
+
 
 
 

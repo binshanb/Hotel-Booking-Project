@@ -36,6 +36,9 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'DESKTOP-S49K883']
 # Application definition
 
 INSTALLED_APPS = [
+
+    "daphne",
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -51,6 +54,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
+    'channels',
+    'chat',
+
 ]
 
 
@@ -100,7 +106,12 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
- }
+    
+    # 'DEFAULT_PERMISSION_CLASSES': [
+    #     'rest_framework.permissions.IsAuthenticated',
+    #     'booking_app.permissions.IsAdminOrReadOnly',  # Replace with your custom permission class path
+    # ]
+    }
 MIDDLEWARE = [
     
     'django.middleware.security.SecurityMiddleware',
@@ -133,7 +144,20 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'booking_project.wsgi.application'
+# WSGI_APPLICATION = 'booking_project.wsgi.application'
+ASGI_APPLICATION = 'booking_project.asgi.application'
+
+
+
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
 
 
 # Database

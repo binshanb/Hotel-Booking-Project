@@ -15,7 +15,7 @@ class RoomFeatureSerializer(serializers.ModelSerializer):
 class RoomImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = RoomImage
-        fields = ('id', 'image')
+        fields = '__all__'
         
 class RoomSerializer(serializers.ModelSerializer):
     images = RoomImageSerializer(many=True, read_only=True)
@@ -29,9 +29,25 @@ class RoomSerializer(serializers.ModelSerializer):
 
 
 class RoomBookingSerializer(serializers.ModelSerializer):
+    user_email = serializers.SerializerMethodField()  # Serializer method field for user email
+    room_title = serializers.SerializerMethodField() 
+    price = serializers.SerializerMethodField()  
+    # Serializer method field for room title
+
     class Meta:
         model = RoomBooking
         fields = '__all__'
+
+    def get_user_email(self, obj):
+        return obj.user.email if obj.user.email else None  # Access user email
+    
+    def get_room_title(self, obj):
+        return obj.room.title if obj.room else None  # Access room title
+    
+    def get_price(self, obj):
+        # Replace 'price_field_name' with the actual field name from your Room model
+        return obj.room.price_per_night if obj.room else None
+    
 
     def validate(self, data):
         # Ensure check_out is not before check_in
@@ -60,6 +76,7 @@ class RoomAvailabilityCheckSerializer(serializers.Serializer):
         # Additional validation if required
         
         return data
+    
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
@@ -77,9 +94,17 @@ class CheckinSerializer(serializers.ModelSerializer):
         fields = ('phone_number', 'email', 'customer_id', 'customer_name', 'room_id', 'room_slug',)
 
 class ReviewSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Review
+            fields = '__all__'
+class BookingStatusSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Review
-        fields = '__all__'
+        model = RoomBooking
+        fields = ['booking_status']
+class RoomCheckoutSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Room
+        fields = [ 'is_active']
 
 class DashboardSerializer(serializers.Serializer):
     pieChart = serializers.ListField(child=serializers.DictField())

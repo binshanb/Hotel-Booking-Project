@@ -2,6 +2,7 @@ from django.db import models
 from accounts.models import AccountUser
 from django.core.validators import MinValueValidator, RegexValidator
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 # Create your models here.
 
@@ -33,7 +34,7 @@ class Room(models.Model):
 
 class RoomImage(models.Model):
     room = models.ForeignKey(Room, related_name='images', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='media/images',default='path/to/default_image.jpg')
+    image = models.ImageField(upload_to='media/room_images')
 
     def __str__(self):
         return f"Image for {self.room.title}"
@@ -64,8 +65,8 @@ class Customer(models.Model):
 
 
 class RoomBooking(models.Model):
-    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='roombookings',default=1)
-    user = models.ForeignKey(AccountUser, on_delete=models.CASCADE, related_name='bookings',default=1)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='roombookings')
+    user = models.ForeignKey(AccountUser, on_delete=models.CASCADE, related_name='bookings')
     check_in = models.DateTimeField(null=True, blank=True)
     check_out = models.DateTimeField(null=True, blank=True)
     number_of_guests = models.IntegerField(null=True, blank=True)
@@ -77,6 +78,7 @@ class RoomBooking(models.Model):
         ('completed', 'Completed')
     ], default='pending')
     booking_notes = models.TextField(blank=True)
+    booking_date = models.DateTimeField(default=timezone.now) 
 
     def clean(self):
         # Ensure check_out is not before check_in
@@ -119,6 +121,7 @@ class CheckOut(models.Model):
 
     def __str__(self):
         return self.customer.email
+
 
 
 

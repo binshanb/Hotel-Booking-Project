@@ -7,6 +7,7 @@ function EditProfile() {
   const [formData, setFormData] = useState({
     first_name: "",
     address: "",
+    city:"",
     state: "",
     country:""
   });
@@ -39,7 +40,7 @@ console.log(userId,'idddddddddd')
 
   const handleSubmit = async () => {
     try {
-      await instance.put(`/api/user/update-profile/`, formData, {
+      await instance.options(`/api/user/update-profile/`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

@@ -35,15 +35,15 @@ const AvailableRoomsPage = () => {
   const navigate = useNavigate();
   const classes = useStyles();
   console.log(location.state,'state2222')
-  const { availableRooms } = location.state || { availableRooms: [] };
+  const  availableRooms  = location.state || { availableRooms: [] };
   console.log(availableRooms,"roooooooooooooooooms");
-  const handleBookNow = (roomId) => {
+  const handleBookNow = () => {
     // Logic to handle booking for the selected room
     const isLoggedIn = checkUserLoggedIn(); // Implement your user authentication logic here
 
     if (isLoggedIn) {
       // User is logged in, proceed to the booking form page
-      navigate(`/booking-form/${roomId}`);
+      navigate('/add-roombooking');
     } else {
       // User is not logged in, redirect to the login page
       navigate('/login');
@@ -51,7 +51,7 @@ const AvailableRoomsPage = () => {
   };
   const checkUserLoggedIn = () => {
     // Simulated check for logged-in user (example using local storage)
-    const userLoggedIn = localStorage.getItem('userLoggedIn');
+    const userLoggedIn = localStorage.getItem('setCredentials');
     return userLoggedIn === 'true'; 
   };
   return (

@@ -13,6 +13,7 @@ urlpatterns = [
     path('admin/edit-room/<int:room_id>/',EditRoomView.as_view(), name='edit-room'),
     path('admin/add-room/', CreateRoomView.as_view(), name='add-room'),
     path('admin/room-list/', RoomListView.as_view(), name='room-list'),
+    path('admin/room-retrieve/<int:pk>/', RoomRetrieveUpdateDestroyView.as_view(), name='room-retrieve'),
     path('room-detail/<int:id>/', RoomDetailsView.as_view(), name='room-detail'),
     path('roomlistuser/', RoomListUserView.as_view(), name='room-list-user'),
     path('admin/room-list/block-unblock/<int:pk>/',BlockUnblockRoomView.as_view(), name='block_ublock-room'),
@@ -23,24 +24,31 @@ urlpatterns = [
     path('admin/add-feature/', CreateRoomFeatureView.as_view(), name='add-feature'),
     path('admin/room-feature/', RoomFeatureView.as_view(), name='room-feature'),
     path('admin/room-feature/block-unblock/<int:pk>/', BlockUnblockRoomFeatureView.as_view(), name='block_ublock-feature'),
-    path('get-available-rooms/', AvailableRoomsListView.as_view(), name='get_available_rooms'),
-    path('room-images/', RoomImageListCreateAPIView.as_view(), name='room-image-list-create'),
+    path('get-available-rooms/', AvailableRoomsView.as_view(), name='get_available_rooms'),
+    # path('admin/room-images/', RoomImageListCreateView.as_view(), name='room-images-list'),
+    # path('admin/room-images/<int:pk>/', RoomImageDetailView.as_view(), name='room-images-details'),
+   
 
 
     path('add-roombooking/', RoomBookingCreateView.as_view(), name='add-roombooking'),
-    path('admin/booking-list/', RoomBookingListView.as_view(), name='booking-list'),
-    path('my-bookings/<int:id>/', MyBookingsListView.as_view(), name='my-bookings'),
-    path('booking-list/<int:id>/cancel-booking/', RoomBookingCancelView.as_view(), name='booking-cancel'),
+    path('roombooking-page/<int:id>/', RoomBookingPageView.as_view(), name='booking-page'), 
+    path('booking-list/', RoomBookingListView.as_view(), name='booking-list'),
+    path('my-bookings/<int:user_id>/', UserBookingsView.as_view(), name='my-bookings'),
+    path('cancel-booking/<int:pk>/', RoomBookingCancellationView.as_view(), name='cancel-booking'),
 
     # path('booking-detail/<int:pk>/', RoomBookingDetailView.as_view(), name='booking-list'),
 
-    path('roombooking-page/<int:id>/', RoomBookingPageView.as_view(), name='booking-page'), 
-    path('change-booking-status/<int:pk>/', ChangeBookingStatus.as_view(), name='change-booking-status'),
+    path('admin/change-booking-status/<int:pk>/',ChangeBookingStatusView.as_view(), name='change-booking-status'),
+    path('admin/room-checkout/<int:pk>/', RoomCheckoutView.as_view(), name='room-checkout'),
+    
     path('payments/', PaymentListCreateView.as_view(), name='payment-list-create'),
     path('create-razorpay-order/', RazorpayOrderView.as_view(), name='create_razorpay_order'),
 
-    path('add-reviews/', ReviewListCreateAPIView.as_view(), name='review-list-create'),
-    path('reviews/', ReviewListAPIView.as_view(), name='review-list'),
+    # path('add-reviews/', ReviewListCreateAPIView.as_view(), name='review-list-create'),
+    path('reviews/', ReviewListCreateAPIView.as_view(), name='review-list-create'),
+    # path('reviews/', ReviewListAPIView.as_view(), name='review-list'),
+
+    path('admin/booking-report/<int:year>/<int:month>/', BookingReportView.as_view(), name='booking-report'),
 
 
 

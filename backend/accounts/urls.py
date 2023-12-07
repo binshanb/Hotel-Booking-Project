@@ -3,9 +3,10 @@ from . import views
 from .views import  UserRegistrationView,GetRoutesView,UserProfileView #UserTokenView AdminTokenObtainPairView
 from .views import CustomTokenObtainPairView, CustomTokenRefreshView,UserListView,BlockUnblockUserView,UserDetailView,UserProfileUpdateView
     
-from .views import ResetPasswordView,ForgotPasswordView
+from .views import VerifyEmail, ForgotPasswordView, PasswordResetView 
 
 urlpatterns = [
+    
     path('',views.GetRoutesView.as_view(),name='getRoutes'),
     path('user/register/', UserRegistrationView.as_view(), name='user-registration'),
     path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -15,8 +16,32 @@ urlpatterns = [
     path('user/user-profile/', UserProfileView.as_view(), name='user-profile'),
     path('user/detail-view/<int:user_id>/',UserDetailView.as_view(), name='user-detail'),
     path('user/update-profile/', UserProfileUpdateView.as_view(), name='user-updation'),
-    path('user/reset-password/', ResetPasswordView.as_view(), name='reset-password'),
-    path('user/forgot-password/', ForgotPasswordView.as_view(), name='reset-password'),
+    path('email-verify/',VerifyEmail.as_view(), name="email-verify"),
+    path('user/forgot-password/',ForgotPasswordView.as_view(), name='forgot_password'),
+    path('user/password-reset/<str:uidb64>/<str:token>/',PasswordResetView.as_view(), name='password_reset_confirm'),
+
+
+    # path('user/reset-password/', ResetPasswordAPIView.as_view(), name='reset-password'),
+    # path('user/forgot-password/', ForgotPasswordAPIView.as_view(), name='reset-password'),
+    # path('user/send-otp/', EmailOTPVerificationView.as_view(), name='send_otp'),
+
+    # Chat/Text Messaging Functionality
+
+
+
+
+
+
+
+    # path('contacts/', ContactListView.as_view(), name='contacts'),
+    # path("user/my-messages/<int:user_id>/", views.MyInbox.as_view(),name= 'my-messages'),
+    # path("user/get-messages/<int:sender_id>/<int:receiver_id>/", views.GetMessages.as_view(), name='get-messages'),
+    # path("user/send-messages/", views.SendMessages.as_view(),name="send-messages"),
+
+
+    # path("profile/<int:pk>/", views.ProfileDetail.as_view()),
+    # path("search/<str:email>/", views.SearchUser.as_view()),
+
 
 ]
     
@@ -45,7 +70,7 @@ urlpatterns = [
     # path('update/<int:id>', UpdateView.as_view(), name = "update"),
     # path('registered_users/', views.search_users, name='search_users'),
     #path('token/refresh/', jwt_views.TokenRefreshView.as_view(), name="token_refresh"),
-    # path('login', Loginview.as_view(), name="login"),
+    #path('login', Loginview.as_view(), name="login"),
     #path('token/', jwt_views.TokenObtainPairView.as_view(), name ="token_obtain_pair"),
 
 

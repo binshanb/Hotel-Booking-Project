@@ -7,13 +7,13 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import {activateRoomInfo} from '../../../redux/slices/roomslices/roomSlice'
 import { makeStyles } from '@material-ui/core/styles';
-import ReviewList from '../Review/ReviewList';
+import Reviews from '../Review/Reviews';
 import {
   Card,
   CardContent,
 } from '@material-ui/core';
 
-import RoomImages from './RoomImages'; 
+import RoomImages from '../../admin/RoomCategories/RoomImages'; 
 
 
 
@@ -37,7 +37,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-function RoomDetail(rooms) {
+function RoomDetail({rooms}) {
 
   const classes = useStyles();
   const [roomData, setRoomData] = useState([]);
@@ -64,7 +64,9 @@ function RoomDetail(rooms) {
         console.error('Error fetching room detail:', error);
       });
   }, [id]);
-
+  const handleReview = ()=>{
+   navigate('/reviews');
+  }
   const handleRooms=()=>{
     navigate('/roomlistuser')
   }
@@ -96,9 +98,26 @@ function RoomDetail(rooms) {
           <CircularProgress size={40} color="primary" />
         </Box>
       )}
+       {/* Check if roomData has loaded and is available */}
+       {isRoomData && roomData && (
+        <Box mb={4}>
+          <Card className={classes.card}>
+            {/* Display the first image as the cover image */}
+            <img
+              src={`${baseUrl}${roomData.cover_image}`}
+              alt={roomData.title}
+              className={classes.cardImage}
+            />
 
-      {isRoomData && roomData && (
-        // <Grid container justifyContent="center" spacing={2}>
+            {/* Use the RoomImages component to display multiple images */}
+            {/* {roomData.images && roomData.images.length > 0 && (
+              <RoomImages images={roomData.images} />
+            )} */}
+            </Card>
+            </Box>
+       )}
+       {/* {isRoomData && roomData && (
+        <Grid container justifyContent="center" spacing={2}>
        <Box mb={4}>
       <Card className={classes.card}>
         <img
@@ -106,10 +125,10 @@ function RoomDetail(rooms) {
           alt={roomData.title}
           className={classes.cardImage}
         />
-           {/* Include RoomImages component */}
+          
            {isRoomData && roomData && (
             <RoomImages roomData={roomData} />
-    )}
+    )}  */}
         <CardContent>
           <Typography variant="h6" gutterBottom>
             {roomData.title}
@@ -130,20 +149,22 @@ function RoomDetail(rooms) {
             Room Size: {roomData.room_size} sq.ft
           </Typography>
           <Typography variant="body1" color="textPrimary" gutterBottom>
+            Room Availability: {roomData.is_active}
+          </Typography>
+          <Typography variant="body1" color="textPrimary" gutterBottom>
             Meals Included
           </Typography>
           <Typography variant="body1" color="textPrimary" gutterBottom>
             Features: {roomData.features ? roomData.features.map((feature) => feature.name).join(', ') : 'Not available'}
           </Typography>
         </CardContent>
-        
-      </Card>
-    </Box>
+   
 
-  )
-}  
 
-<ReviewList/>   
+
+<button onClick={handleReview} variant="contained" color="primary" size ="large">
+  Add a Review
+</button>
 <Box mt={4} display="flex" justifyContent="center">
         <Button onClick={handleBooking} variant="contained" color="primary" size="large">
            Book Now

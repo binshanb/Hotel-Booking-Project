@@ -2,9 +2,9 @@ from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 from .models import Category,Room,RoomFeature,RoomBooking,CheckIn,Payment,Review,RoomImage
 from .serializer import CategorySerializer,RoomSerializer,RoomFeatureSerializer,RoomBookingSerializer,PaymentSerializer,RoomAvailabilityCheckSerializer,ReviewSerializer
-from .serializer import DashboardSerializer,RoomImageSerializer
-
-from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView,RetrieveUpdateAPIView
+from .serializer import DashboardSerializer,RoomImageSerializer,RoomCheckoutSerializer,BookingStatusSerializer
+from .permissions import IsAdminOrReadOnly
+from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView,RetrieveUpdateAPIView,ListCreateAPIView
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
@@ -13,6 +13,7 @@ from rest_framework import generics
 from rest_framework.generics import UpdateAPIView
 from django.http import JsonResponse
 from django.views import View
+from django.shortcuts import get_list_or_404
 import razorpay
 from decouple import config
 from rest_framework.authentication import TokenAuthentication
@@ -21,6 +22,7 @@ from rest_framework.pagination import PageNumberPagination
 from datetime import datetime
 from django.db.models import Q
 from django.utils import timezone
+from django.db.models import Count
 # # Create your views here.
 
 
@@ -84,9 +86,13 @@ class EditCategoryView(APIView):
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-class RoomImageListCreateAPIView(generics.ListCreateAPIView):
-    queryset = RoomImage.objects.all()
-    serializer_class = RoomImageSerializer
+# class RoomImageListCreateView(generics.ListCreateAPIView):
+#     queryset = RoomImage.objects.all()
+#     serializer_class = RoomImageSerializer
+
+# class RoomImageDetailView(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = RoomImage.objects.all()
+#     serializer_class = RoomImageSerializer
         
         
 class BlockUnblockCategoryView(UpdateAPIView):
@@ -114,6 +120,10 @@ class RoomListView(generics.ListCreateAPIView):
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
 
+class RoomRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Room.objects.all()
+    serializer_class = RoomSerializer
+
 class RoomListUserView(generics.ListCreateAPIView):
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
@@ -125,7 +135,7 @@ class RoomDetailsView(APIView):
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
     def get(self, request, id):
-      room = Room.objects.get(id=id)
+      room = Room.objects.prefetch_related('features').get(id=id)
       serializer = RoomSerializer([room],many = True)
       print(room.cover_image,'oooooooooooooooo')
       return Response(serializer.data,status= status.HTTP_200_OK) 
@@ -233,24 +243,62 @@ class EditRoomFeatureView(generics.RetrieveUpdateDestroyAPIView):
 #         return Response({'is_available': is_active})
 
 
-class AvailableRoomsListView(ListAPIView):
+class RoomCheckoutView(generics.UpdateAPIView):
+    serializer_class = RoomCheckoutSerializer  # Use your RoomCheckout serializer
+
+    def update(self, request, *args, **kwargs):
+        room_id = self.kwargs.get('pk')
+        room = get_object_or_404(Room, id=room_id)  # Ensure room object exists
+
+        try:
+            room.is_active = False  # Update the room's is_active status (change as needed)
+            room.save()
+
+            # Optionally, serialize the room details in the response
+            serializer = self.get_serializer(room)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+# class RoomCheckoutView(generics.UpdateAPIView):
+#     queryset = Room.objects.all()  # Define your queryset based on your needs
+#     serializer_class = RoomSerializer  # Use your Room serializer
+
+#     def update(self, request, *args, **kwargs):
+#         room_id = self.kwargs.get('pk')  # Assuming the room ID is passed as 'pk'
+#         try:
+#             room = self.get_object()
+#             room.is_active = False  # Update the room's is_active status (change as needed)
+#             room.save()
+            
+#             # Optionally, serialize the room details in the response
+#             serializer = self.get_serializer(room)
+#             print(serializer,"seriallllllllllll")
+#             return Response(serializer.data)
+#         except Room.DoesNotExist:
+#             return Response(status=404)
+        
+
+class AvailableRoomsView(APIView):
     serializer_class = RoomSerializer
 
-    def get_queryset(self):
-      
-        check_in_date = datetime.strptime(self.request.GET.get('check_in'), '%Y-%m-%d')
-        check_out_date = datetime.strptime(self.request.GET.get('check_out'), '%Y-%m-%d')
+    def get(self, request):
+        check_in_date = request.query_params.get('check_in')
+        check_out_date = request.query_params.get('check_out')
 
-        # Fetch rooms available between check-in and check-out dates
-        available_rooms = Room.objects.filter(
-            is_active=True,  # Filter active rooms
-       ).exclude(
-        # Exclude rooms that have bookings conflicting with the specified date range
-        Q(roombookings__check_in__lt=check_out_date, roombookings__check_out__gt=check_in_date)
-    ).distinct()
-           
+        available_rooms = Room.objects.filter(is_active=True)
+        serialized_rooms = self.serializer_class(available_rooms, many=True).data
         
-        return available_rooms
+        # Manually check room availability for the provided dates and set is_active property
+        for room_data in serialized_rooms:
+            bookings = room_data['roombookings']
+            is_available = all(
+                check_in_date >= booking['check_out'] or check_out_date <= booking['check_in']
+                for booking in bookings
+            )
+            room_data['is_active'] = is_available
+
+        return Response(serialized_rooms)
 
 class RoomBookingCreateView(CreateAPIView):
     serializer_class = RoomBookingSerializer
@@ -258,19 +306,23 @@ class RoomBookingCreateView(CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         response = {}
+        
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
+        
+        print(serializer.data,"seriiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
         headers = self.get_success_headers(serializer.data)
         response['data'] = serializer.data
+        
         response['response'] = "Room is successfully booked"
         return Response(response, status=status.HTTP_201_CREATED, headers=headers)
 
     # def post(self, request, *args, **kwargs):
     #     room = get_object_or_404(Room, pk=request.data['room'])
-    #     if room.is_booked:
+    #     if room.is_active:
     #         return Response({"response": "Room is already booked"}, status=status.HTTP_200_OK)
-    #     room.is_booked = True
+    #     room.is_active = False
     #     room.save()
     #     checked_in_room = CheckIn.objects.create(
     #         customer=request.user,
@@ -284,37 +336,94 @@ class RoomBookingCreateView(CreateAPIView):
 class RoomBookingListView(generics.ListAPIView):
     queryset = RoomBooking.objects.all()
     serializer_class = RoomBookingSerializer 
+
+    
 class RoomBookingDetailView(generics.RetrieveAPIView):
     queryset = RoomBooking.objects.all()
     serializer_class = RoomBookingSerializer
 
-class MyBookingsListView(ListAPIView):
-    serializer_class = RoomBookingSerializer  # Replace 'BookingSerializer' with your actual serializer
-    queryset = RoomBooking.objects.all() 
+class UserBookingsView(ListAPIView):
+    serializer_class = RoomBookingSerializer
 
-class RoomBookingCancelView(RetrieveUpdateAPIView):
-    serializer_class = RoomBookingSerializer  # Replace 'BookingSerializer' with your actual serializer
-    queryset = RoomBooking.objects.all()  # Replace 'Booking' with your actual model name
-
+    def get_queryset(self):
+        user_id = self.kwargs['user_id']
+        return RoomBooking.objects.filter(user_id=user_id)
+    
 
     
+class RoomBookingCancellationView(generics.UpdateAPIView):
+    queryset = RoomBooking.objects.all()
+    serializer_class = RoomBookingSerializer
+
+    def update(self, request, *args, **kwargs):
+      try:
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save(booking_status='cancelled')  # Update booking status
+
+        # Additional logic after cancellation (if any)...
+
+        return Response({'message': 'Booking cancelled successfully'}, status=status.HTTP_200_OK)
+      except RoomBooking.DoesNotExist:
+            return Response({'error': 'Booking not found'}, status=status.HTTP_404_NOT_FOUND)
+class RoomCheckoutView(generics.UpdateAPIView):
+    queryset = Room.objects.all()
+    serializer_class = RoomSerializer
+    lookup_field = 'pk'
+
+# class RoomCheckoutView(generics.UpdateAPIView):
+#     queryset = RoomBooking.objects.all()
+#     serializer_class = RoomBookingSerializer
+
+#     def patch(self, request, *args, **kwargs):
+#         booking_id = self.kwargs.get('pk')
+#         try:
+#             booking = self.get_object()
+#             if booking.booking_status == 'completed':
+#                 room = booking.room
+#                 room.is_active = True  # Set room status to active
+#                 room.save()
+#                 # Additional logic to update room availability based on the booking
+#                 return Response({'message': 'Room status updated successfully'})
+#             else:
+#                 return Response({'error': 'Booking status is not completed'}, status=status.HTTP_400_BAD_REQUEST)
+#         except RoomBooking.DoesNotExist:
+#             return Response({'error': 'Booking not found'}, status=status.HTTP_404_NOT_FOUND)
 
 class RoomBookingPageView(generics.ListAPIView):
     queryset = RoomBooking.objects.all()
     serializer_class = RoomBookingSerializer
 
-class ChangeBookingStatus(APIView):
-    def put(self, request, booking_id):
-        booking = get_object_or_404(RoomBooking, id=booking_id)
-        new_status = request.data.get('booking_status')
 
-        # Update the booking status
-        booking.booking_status = new_status
-        booking.save()
 
-        serializer = RoomBookingSerializer(booking)  # Adjust serializer according to your needs
+class ChangeBookingStatusView(generics.UpdateAPIView):
+    queryset = RoomBooking.objects.all()
+    serializer_class = RoomBookingSerializer
+    lookup_field = 'pk'
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def update(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            instance = serializer.save(booking_status=request.data.get('booking_status'))
+
+            return Response({'message': 'Booking status updated successfully'}, status=status.HTTP_200_OK)
+        except RoomBooking.DoesNotExist:
+            return Response({'error': 'Booking not found'}, status=status.HTTP_404_NOT_FOUND)
+# class ChangeBookingStatus(APIView):
+#     def put(self, request, booking_id):
+#         booking = get_object_or_404(RoomBooking, id=booking_id)
+#         new_status = request.data.get('booking_status')
+
+#         # Update the booking status
+#         booking.booking_status = new_status
+#         booking.save()
+
+#         serializer = RoomBookingSerializer(booking)  # Adjust serializer according to your needs
+
+#         return Response(serializer.data, status=status.HTTP_200_OK)
 
 # class BookingListView(generics.ListAPIView):
 #     queryset = Booking.objects.all()
@@ -352,11 +461,41 @@ class RazorpayOrderView(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class ReviewListCreateAPIView(generics.ListCreateAPIView):
+class ReviewListCreateAPIView(ListCreateAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
 
+    # def create(self, request, *args, **kwargs):
+    #     serializer = self.get_serializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+        
+    #     try:
+    #         serializer.save()  # Save the validated serializer data
+    #     except Exception as e:
+    #         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    # def perform_create(self, serializer):
+    #     serializer.save() # Save the validated serializer data
+        
+
+    # def create(self, request, *args, **kwargs):
+    #     response = {}
+    #     serializer = self.get_serializer(data=request.data)
+    #     print(serializer,"hkhkdkjj")
+    
+    #     serializer.is_valid(raise_exception=True)
+    #     self.perform_create(serializer)
+    #     headers = self.get_success_headers(serializer.data)
+    #     print(headers,"ddddddddddd")
+    #     response['data'] = serializer.data
+    #     response['response'] = "Review added"
+    #     print(response,"iiiiiiiiiii")
+    #     return Response(response, status=status.HTTP_201_CREATED, headers=headers)
+    
 class ReviewListAPIView(generics.ListAPIView):
+
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
 
@@ -394,3 +533,18 @@ class DashboardDataAPIView(APIView):
         serializer.is_valid(raise_exception=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class BookingReportView(generics.ListAPIView):
+    serializer_class = RoomBookingSerializer
+
+    def get_queryset(self):
+        year = int(self.kwargs.get('year'))
+        month = int(self.kwargs.get('month'))
+        
+        start_date = datetime(year, month, 1)
+        next_month = month + 1 if month < 12 else 1
+        next_year = year + 1 if month == 12 else year
+        end_date = datetime(next_year, next_month, 1)
+
+        return RoomBooking.objects.filter(booking_date__gte=start_date, booking_date__lt=end_date).values('booking_date').annotate(count=Count('id')).order_by('booking_date')

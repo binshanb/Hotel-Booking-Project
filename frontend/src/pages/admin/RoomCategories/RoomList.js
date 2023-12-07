@@ -74,34 +74,36 @@ const RoomList = () => {
       width: 200,
       renderCell: (params) => (
         <ul>
-       {params.row.features.map((featureId) => {
-        console.log("Feature ID:", featureId); // Log the featureId to check against features array
-        const foundFeature = features.find((feature) => feature.id === featureId);
-        console.log("Found Feature:", foundFeature); // Log the foundFeature to check if it's null or an actual feature
-        return (
-          <li key={featureId}>
-            {foundFeature ? foundFeature.name : 'Unknown Feature'}
-          </li>
-        );
-      },
-      {
-        field: "is_active",
-        headerName: "Active",
-        width: 100,
-        renderCell: (params) => (
-          params.value ? (
-            <GoCheckCircleFill color="green" style={{fontSize: "24px"}} />
+          {params.row.features && Array.isArray(params.row.features) ? (
+            params.row.features.map((feature) => {
+              
+              // const foundFeature = features.find((feature) => feature.id === featureId);
+              return (
+                <li key={feature.id}>
+                  {feature ? feature.name : "Unknown Feature"}
+                </li>
+              );
+            })
           ) : (
-            <HiExclamationCircle color="red" style={{fontSize: "24px"}}/>
-          )
-        ),
-      },
-      
-      )}
-      </ul>
+            <li>No features</li>
+          )}
+        </ul>
       ),
-    }
-    ,];
+    },
+    
+    {
+      field: "is_active",
+      headerName: "Active",
+      width: 100,
+      renderCell: (params) => (
+        params.value ? (
+          <GoCheckCircleFill color="green" style={{fontSize: "24px"}} />
+        ) : (
+          <HiExclamationCircle color="red" style={{fontSize: "24px"}}/>
+        )
+      ),
+    },
+    ];
   const fetchRooms = async () => {
     try {
       const response = await adminInstance.get("booking/admin/room-list/");
@@ -153,8 +155,10 @@ const RoomList = () => {
   };
 
   const handleEditRoom = (room) => {
+    console.log('edit')
     setSelectedRooms(room);
     setIsEditModalOpen(true);
+    console.log('value',isEditModalOpen)
   };
 
   const handleUpdateRoom = async (updatedRoomData, roomId) => {
@@ -212,7 +216,7 @@ const RoomList = () => {
             style={{ border: "none", background: "none", cursor: "pointer" }}
           >
             <BiSolidEdit style={{ fontSize: "24px", color: "blue" }} />
-          </button>{" "}
+          </button>
         </div>
       ),
     },

@@ -1,8 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState= {
-    userInfo:localStorage.getItem('userInfo')?JSON.parse(localStorage.getItem('userInfo')):null
-}
+    userInfo:localStorage.getItem('userInfo')?JSON.parse(localStorage.getItem('userInfo')):null,
+    messages: [],
+};
 
 const authSlice =createSlice({
     name:'auth',
@@ -15,10 +16,16 @@ const authSlice =createSlice({
         logout:(state)=>{
             state.userInfo=null;
             localStorage.removeItem('userInfo')
-        } 
+        },
+        setMessages: (state, action) => { // New reducer to set messages
+            state.messages = action.payload;
+          },
+          clearMessages: (state) => { // New reducer to clear messages
+            state.messages = [];
+          },
     }
 })
 
-export const {setCredentials,logout}=authSlice.actions;
+export const {setCredentials,logout,setMessages,clearMessages}=authSlice.actions;
 
 export default authSlice.reducer;

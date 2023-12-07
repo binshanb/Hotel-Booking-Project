@@ -35,14 +35,16 @@ const BookingForm = ({roomId}) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const roomInfo= useSelector((state) => state.room.roomInfo);
-  console.log( roomInfo,"gggggg")
+
 
 
   const userInfos = useSelector((state) => state.auth.userInfo);
+  
   const loading = useSelector((state) => state.room.loading);
   const error = useSelector((state) => state.room.error);
   
   const [decodedUserInfo, setDecodedUserInfo] = useState({});
+  
   const [formData, setFormData] = useState({
     check_in: '',
     check_out: '',
@@ -52,7 +54,6 @@ const BookingForm = ({roomId}) => {
     if (userInfos) {
       // Decode the token and set the user info state
       const decodedInfo = jwtDecode(userInfos.access); // Assuming 'access' contains user details
-      console.log(decodedInfo);
       setDecodedUserInfo(decodedInfo);
     }
     if (roomId){
@@ -63,13 +64,11 @@ const BookingForm = ({roomId}) => {
   
 
   const handleChange = (e) => {
-    console.log(e.target.value)
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
-console.log(formData,"kkjjjhh")
   const handleSubmit = async (e) => {
     e.preventDefault();
    
@@ -83,20 +82,20 @@ console.log(formData,"kkjjjhh")
         // Converting valid dates to ISO string format
         const formattedData = {
           ...formData,
+          user: decodedUserInfo.user_id,
+          room: roomInfo.id,
           check_in: checkInDate.toISOString(),
           check_out: checkOutDate.toISOString(),
         };
+        console.log(formattedData,"this is formatted data");
 
         const response = await instance.post(`${baseUrl}/api/booking/add-roombooking/`, formattedData);
-         console.log('Booking created:', response.data);
 
-         alert('Booking created successfully!');
+         alert('Booking added,Go for Payments to Complete!!!');
         // Additional logic after successful booking creation
       dispatch(activateBookingInfo ({...response.data.data}));
        if (response && response.data) {
         const bookingId = response.data.id;
-        console.log(bookingId,"book id");
-
         navigate(`/roombooking-page/${bookingId}`)}}
         }} catch (error) {
              console.error('Error creating booking:', error);

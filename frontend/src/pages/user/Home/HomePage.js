@@ -4,7 +4,7 @@ import React,{useEffect, useState} from 'react';
 
 
 import { useNavigate } from 'react-router-dom';
-import Hotel1 from '../../../assets/hotel1.jpg' 
+import Hotel1 from '../../../assets/hotel51.jpg' 
 import Hotel2 from '../../../assets/hotel2.png' 
 import DateSelectionForm from '../Bookings/AvailableRoomsPage';
 import Hotel3 from '../../../assets/hotel16.jpg' 
@@ -29,7 +29,7 @@ import Banner from './Banner';
 import './HomePage.css'
 import hotelImage from '../../../assets/hotel10.jpg';
 import hotelImage1 from '../../../assets/hotel11.jpg';
-import hotelImage2 from '../../../assets/hotel12.jpg';
+import hotelImage2 from '../../../assets/hotel50.jpg';
 import hotelImage3 from '../../../assets/hotel13.jpg';
 import hotelImage4 from '../../../assets/hotel14.jpg';
 import hotelImage5 from '../../../assets/hotel15.jpg';
@@ -38,26 +38,24 @@ import RoomAvailabilityChecker from '../Bookings/AvailableRoomsPage';
 import { Box, Container, Flex, Text, SimpleGrid, Button,Grid,Link,Card } from '@mui/material';
 import { TextField,List, ListItem, ListItemText  } from '@mui/material';
 import { makeStyles } from '@mui/styles';
+import { baseUrl } from '../../../utils/constants';
 
 
 
 const useStyles = makeStyles({
-  container: {
+  card: {
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center',
-    marginTop: '20px',
+    justifyContent: 'space-between',
+    height: '100%', // Maintain full height of the card
   },
-  inputContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    margin: '10px',
+  cardMedia: {
+    paddingTop: '56.25%', // 16:9 aspect ratio for the images
   },
-  button: {
-    marginTop: '10px',
+  cardContent: {
+    flexGrow: 1,
   },
 });
-
 
 const rooms = [
   { id: 1, name: "Single Room", price: 1300},
@@ -71,7 +69,7 @@ const rooms = [
 const cards = [
   {
     id: 1,
-    title: 'Free Wi-Fi Availability',
+    title: 'Free Wi-Fi',
     description: 'Stay connected with complimentary high-speed Wi-Fi throughout your stay.',
     imageUrl: hotelImage, // Replace with your image URL
   },
@@ -102,7 +100,7 @@ const cards = [
   {
     id: 6,
     title: 'Concierge Services',
-    description: 'Assist with travel arrangements, provide local recommendations, and help you plan your activities and excursions.',
+    description: 'Assist with travel arrangements and help you plan your activities and excursions.',
     imageUrl: hotelImage5, // Replace with your image URL
   },
 ];
@@ -114,32 +112,38 @@ function HomePage() {
 
   const navigate = useNavigate();
   const [checkInDate, setCheckInDate] = useState(null);
+  console.log(checkInDate,"dateeeeeeee");
   const [checkOutDate, setCheckOutDate] = useState(null);
-  let [availableRooms, setAvailableRooms] = useState([]);
+  console.log(checkOutDate,"checkoutttttt");
+  const [availableRooms, setAvailableRooms] = useState([]);
+  
   const classes = useStyles();
+
 
   const handleCheckAvailability = async () => {
     try {
-      const response = await instance.get(`/api/booking/get-available-rooms/?check_in=${checkInDate}&check_out=${checkOutDate}`);
-       setAvailableRooms(response.data);
-      // console.log(response.data,"hallooooooo");
-      // console.log(availableRooms,"iuuyuuuuuuuuuuuuu");
-    
-    
-      // if (response.data.is_active) {
-      // If room is available, update availableRooms state with available room data
-      // setAvailableRooms(response.data.is_active,"kjjjjjjjjjjjjjjjjjjjj");
-      // }
-    }catch (error) {
+      const response = await instance.get(`${baseUrl}/api/booking/roomlistuser/?check_in=${checkInDate}&check_out=${checkOutDate}`);
+      console.log(response.data, "Response Data"); // Assuming the response data has 'is_active' property
+      if (Array.isArray(response.data)) {
+        const availableRooms = response.data.filter(room => room.is_active === true);
+        setAvailableRooms(availableRooms);
+        console.log(availableRooms, "Available Rooms Data");
+       
+        
+      } 
+      else {
+        setAvailableRooms([]); // If not active, set available rooms to empty array
+      }
+    } catch (error) {
       console.error('Error fetching available rooms:', error);
       setAvailableRooms([]); // Set availability to false in case of an error
     }
   };
 
-  useEffect(()=>{
-console.log(availableRooms,'availablerooms')
-if(availableRooms.length>0){
-  navigate('/get-available-rooms', { state: { availableRooms } });
+useEffect(()=>{
+
+  if(availableRooms.length>0){
+    navigate('/get-available-rooms/',{state:availableRooms});
 
   }
   },[availableRooms,navigate])
@@ -171,7 +175,10 @@ return (
           <Typography variant="h6" mb={8}>
             Book now to enjoy our limited-time offer
           </Typography>
-          <div className={classes.container}>
+          
+          {/* Add your DateSelectionForm component */}
+          <Box bgcolor="white" padding={6} borderRadius="lg" boxShadow={3} mb={8}>
+  <div className={classes.container}>
     <Typography variant="h4">Check Room Availability</Typography>
     <div className={classes.inputContainer}>
       <TextField
@@ -183,6 +190,7 @@ return (
         }}
       />
     </div>
+    <br/>
     <div className={classes.inputContainer}>
       <TextField
         label="Check-out Date"
@@ -193,13 +201,18 @@ return (
         }}
       />
     </div>
-    <Button variant="contained" color="primary" onClick={handleCheckAvailability} className={classes.button}>
+    <br/>
+    <Button
+      variant="contained"
+      color="primary"
+      onClick={handleCheckAvailability}
+      className={classes.button}
+    >
       Check Availability
     </Button>
-          {/* Add your DateSelectionForm component */}
-          <Box bgcolor="white" padding={6} borderRadius="lg" boxShadow={3} mb={8}>
-           
-          </Box>
+  </div>
+</Box>
+
 
           {/* Cards Section */}
           <Grid container spacing={6}>
@@ -211,7 +224,7 @@ return (
                 </Link>
                 <Box p={4}>
                   <Typography variant="h6" fontWeight="bold" mb={2}>
-                    Utilize Our Room Facilities
+                  Our Room Facilities
                   </Typography>
                   <Typography variant="body1" mb={2}>
                     Discover the comforts of our in-room amenities
@@ -257,7 +270,7 @@ return (
               </Card>
             </Grid>
           </Grid>
-          </div>
+        
         </Grid>
       </Container>
     </Box>
@@ -288,15 +301,24 @@ return (
                 <Typography variant="body1" component="p">
                   {card.description}
                 </Typography>
-                <Button variant="contained" color="primary" mt={2}>
-                  View Here
-                </Button>
+                <Button
+    variant="contained"
+    color="primary"
+    component={RouterLink}
+    to="/categorylist"
+    mt={2}
+  >
+    View Here
+  </Button>
+
               </Box>
             </Card>
           </Grid>
         ))}
+      
       </Grid>
     </Container>
+    <br/>
 
   </main>
   </div>

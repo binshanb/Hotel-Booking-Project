@@ -21,7 +21,8 @@ export default function AddRoomModal({
     description: "",
     room_slug: "",
     category: "", // Add category field
-    features: [], // Add features field as an array
+    features: [],// Add features field as an array
+    images:[], 
   });
   
 
@@ -44,7 +45,7 @@ export default function AddRoomModal({
           }
         }
 
-        const response = await axios.post('YOUR_BACKEND_ENDPOINT_URL_HERE', roomFormData, {
+        const response = await adminInstance.post('booking/admin/add-room/', roomFormData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -71,12 +72,14 @@ export default function AddRoomModal({
   };
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    setRoomData({ ...roomData, cover_image: file });
+    const files = Array.from(e.target.files);
+    setRoomData({ ...roomData,images:[...roomData.images,...files] });
   };
 
-  const handleRemoveImage = () => {
-    setRoomData({ ...roomData, cover_image: null });
+  const handleRemoveImage = (index) => {
+    const updatedImages = [...roomData.images];
+    updatedImages.splice(index, 1);
+    setRoomData({ ...roomData, images: updatedImages });
   };
 
   const handleInputChange = (e) => {
@@ -273,6 +276,39 @@ export default function AddRoomModal({
               ))}
             </select>
           </div>
+
+          {/* add multiple images  */}
+
+          <div className="mt-4">
+        <label htmlFor="roomImages" className="block text-gray-700 font-bold">
+          Room Images
+        </label>
+        <input
+          type="file"
+          id="roomImages"
+          accept="image/*"
+          multiple
+          onChange={handleImageChange}
+          className="w-full border rounded p-2 mt-2"
+        />
+      </div>
+      <div className="image-input mt-4">
+        {roomData.images.map((image, index) => (
+          <div key={index} className="image-preview-container">
+            <img
+              src={URL.createObjectURL(image)}
+              alt={`Image ${index + 1}`}
+              className="image-preview"
+            />
+            <div
+              className="remove-image text-red-500 cursor-pointer"
+              onClick={() => handleRemoveImage(index)}
+            >
+              <FaTrash />
+            </div>
+          </div>
+        ))}
+      </div>
           {/* Input field for cover image */}
           <div className="image-input mt-4">
             {roomData.cover_image ? (

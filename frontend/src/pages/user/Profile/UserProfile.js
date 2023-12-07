@@ -3,22 +3,26 @@ import "../../../pages/user/Profile/Style.css";
 import EditProfile from "./EditProfile";
 import instance from "../../../utils/Axios";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from 'react-redux';
+
+
 
 function UserProfile() {
-  const [showForm, setShowForm] = useState(false);
-  const [userData , setUserData] = useState('');
+
+  const user_id = useSelector((state) => state.auth.userInfo); // Access userId from Redux state
+  const token = useSelector((state) => state.auth.token);
   const navigate = useNavigate();
 
-  const userId = localStorage.getItem("userInfo")
-    ? JSON.parse(localStorage.getItem("userInfo")).user_id
-    : null;
-  const token = localStorage.getItem("userInfo")
-    ? JSON.parse(localStorage.getItem("userInfo")).access
-    : null;
-    useEffect(() => {
+  const [showForm, setShowForm] = useState(false);
+  const [userData , setUserData] = useState('');
+  
+
+
+useEffect(() => {
+  console.log('id',user_id)
   const fetchUserData = async () =>{
     try{
-      const response = await instance.get(`/api/user/detail-view/${userId}/`, {
+      const response = await instance.get(`/api/user/detail-view/${user_id}/`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -30,14 +34,15 @@ function UserProfile() {
     }
   }
   fetchUserData();
-}, [userId, token]);
+}, [user_id, token]);
+const handleMyBookingsClick = () => {
+  navigate(`/my-bookings/${user_id}/`); // Navigate to My Bookings page with the userId
+};
 const {first_name} = userData
   const  handleEditClick = () => {
     setShowForm((prevShowForm) => !prevShowForm);
   };
-  const handleBookingClick = () =>{
-    navigate('/my-bookings')
-  }
+
   return (
     <div style={{ height: "100vh", backgroundColor: "	#fcdad1" }}>
       <div className="container ">
@@ -69,7 +74,7 @@ const {first_name} = userData
                         </span>
                       </div>
 
-                      <div className="colum" onClick={handleBookingClick}>
+                      <div className="colum" onClick={handleMyBookingsClick}>
                         <i
                           className="fas fa-edit "
                           style={{ color: "blue" }}

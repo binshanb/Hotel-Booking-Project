@@ -1,5 +1,4 @@
 import React from 'react'
-
 import {Routes,Route} from 'react-router-dom'
 import AdminDashboard from '../pages/admin/AdminDashBoard'
 import HomePage from '../pages/user/Home/HomePage'
@@ -24,30 +23,22 @@ import BookingForm from '../components/Bookings/BookingForm'
 import BookingPage from '../pages/user/Bookings/BookingPage'
 import BookingList from '../pages/admin/Booking/BookingList'
 import RoomFeatureList from '../pages/admin/Features/RoomFeatureList'
-import BookingHistory from '../pages/admin/Booking/AdminBookingStatusChange'
 import RoomFilter from '../pages/user/Rooms/RoomFilter';
 import BookingSuccessPage from '../pages/user/Bookings/BookingSuccessPage'
-import MyBookingsPage from '../pages/user/Profile/MyBookings'
+import MyBookings from '../pages/user/Profile/MyBookings'
 import CancelMyBooking from '../pages/user/Profile/CancelMyBooking'
 import AvailableRoomsPage from '../pages/user/Bookings/AvailableRoomsPage'
-import ReviewForm from '../pages/user/Review/ReviewForm'
+import Reviews from '../pages/user/Review/Reviews'
 import ReviewList from '../pages/user/Review/ReviewList'
-import ResetPassword from '../pages/user/ResetPassword'
+import PasswordResetWrapper from '../pages/user/ResetPassword'
+import ForgotPassword from '../pages/user/ForgotPassword'
+import UserChat from '../pages/user/Chat/UserChat'
+import AdminChat from '../pages/admin/AdminChat'
+import BookingReport from '../pages/admin/Booking/BookingReport'
 
 
 
 
-
-
-
-
-
-
-// import CategoryCreate from '../pages/admin/RoomCategories/CreateCategory'
-// import AddCategory from '../pages/admin/RoomCategories/AddCategory'
-// import EditCategory from '../pages/admin/RoomCategories/EditCategory'
-// import RoomListUser from '../pages/user/Rooms/RoomListUser'
-// import AddRoom from '../pages/admin/RoomCategories/AddRoom'
 
 
 
@@ -70,7 +61,13 @@ const Routers = () => {
         <Route path='/user/user-profile' element={<UserProfile/>} />
         
         <Route path='/logout' element={<Logout/>} />
-        <Route path='/reset-password' element={<ResetPassword/>} />
+        <Route path='/forgot-password' element={< ForgotPassword/>} />
+        <Route path='/password-reset/:uid/:token' element={< PasswordResetWrapper/>} />
+        
+        <Route path='/messages' element={<UserChat/>} />
+    
+
+
 
          {/* <-----------Rooms------------> */}
 
@@ -94,24 +91,11 @@ const Routers = () => {
         <Route path='/add-roombooking' element={<BookingForm/>} />
         <Route path='/roombooking-page/:id' element={<BookingPage/>} />
         <Route path='/booking-success' element={<BookingSuccessPage/>} />
-        <Route path='/my-bookings/:userId' element={<MyBookingsPage/>} />
-        <Route path='/add-reviews' element={<ReviewForm/>} />
+        <Route path='/my-bookings/:user_id' element={<MyBookings/>} />
+        <Route path='/reviews' element={<Reviews/>} />
         <Route path='/reviews' element={<ReviewList/>} />
-        <Route path='/roombooking-page/:bookingId/cancel-booking' element={<CancelMyBooking/>} />
+        <Route path='/roombooking-page/cancel-booking/:bookingId' element={<CancelMyBooking/>} />
         
-        
-        {/* <Route path='/my-bookings' element={<MyBookings/>}/> */}
-
-
-        
-        
-
-
-
-    
-
-        
-    
     </Route>
       
 
@@ -136,29 +120,27 @@ const Routers = () => {
         <Route path='/admin/room-category' element={<RoomCategory/>} />
         <Route path='/admin/room-list' element={<RoomList/>} />
         <Route path='/admin/room-feature' element={<RoomFeatureList/>} />
-      
-
         <Route path='/admin/booking-list' element= {<BookingList/>} />
-        <Route path='/admin/booking-history'element= {<BookingHistory/>} />
+        <Route path='/admin/messages' element= {<AdminChat/>} />
+        <Route path='/admin/booking-report' element= {<BookingReport/>} />
+
+
+      
 
 
       </Route>
+            
+    </Routes>
+   
+   )
+ }
+ 
+ export default Routers;
       
 
-        {/* <Route path='/admin/addcategory' element={< AddCategory/>}/>
-        <Route path='/admin/deletecategory/:category_id' element={< AddCategory/>}/>
-        <Route path='/admin/editcategory/:category_id' element={<EditCategory/>}/> */}
-        {/* <Route path='/admin/roomlist' element={<RoomList/>} />
-        <Route path='/admin/addroom' element={< AddRoom/>}/> */}
+       
         
         
        
 
         
-      
-    </Routes>
-   
-  )
-}
-
-export default Routers;

@@ -18,11 +18,15 @@ from django.contrib import admin
 from django.urls import path,include
 from django.conf import settings
 from django.conf.urls.static import static
+from  chat import routing
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('accounts.urls')),
     path('api/booking/', include('booking_app.urls')),
+    path('api/chat/',include('chat.urls')),
+    path('ws/', include(routing.websocket_urlpatterns)),
+
 
 
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

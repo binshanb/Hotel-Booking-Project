@@ -1,23 +1,43 @@
 from django.shortcuts import render
 from rest_framework.response import Response
-
+from django.db.models import Subquery,OuterRef,Q
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework import generics,permissions
 from rest_framework.generics import UpdateAPIView,RetrieveAPIView
 from django.shortcuts import get_object_or_404
+from django.core.mail import send_mail
+from django.core.mail import send_mail
+from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import check_password
+from django.urls import reverse
+from .utils import Util, EmailUtils
+from drf_yasg import openapi
+import jwt
+
+# from .utils import send_email_verification_code
+
+# from .email_utils import send_email_otp
 
 from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTTokenUserAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .serializers import UserRegisterSerializer
-from .serializers import CustomTokenObtainPairSerializer,CustomTokenRefreshSerializer,UserSerializer,ResetPasswordSerializer,ForgotPasswordSerializer
+from .serializers import UserRegisterSerializer,ChangePasswordSerializer,EmailVerificationSerializer,ForgotPasswordSerializer,PasswordResetSerializer
+from .serializers import CustomTokenObtainPairSerializer,CustomTokenRefreshSerializer,UserSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView ,TokenRefreshView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import AccountUser
 from .serializers import UserProfileSerializer
+import random
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
+
+User = get_user_model()
 
 
 class GetRoutesView(APIView):
@@ -138,42 +158,248 @@ class UserDetailView(RetrieveAPIView):
     
     def get_object(self):
         return self.request.user
+class ForgotPasswordView(generics.GenericAPIView):
+    serializer_class = ForgotPasswordSerializer
+    permission_classes = [permissions.AllowAny]
 
-class ResetPasswordView(APIView):
-    def post(self, request, *args, **kwargs):
-        serializer = ResetPasswordSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        password = serializer.validated_data.get('password')
-        # Perform password reset logic here
-        # You can use the 'state' and 'password' variables as needed from the request or context
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
         
-        # Example: Reset password for a user
-        user = request.user  # Assuming you have a user context
-        user.set_password(password)
-        user.save()
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            try:
+                user = User.objects.get(email=email)
+                if not user.is_active():
+                    return Response({'detail': 'User with this has been blocked.'}, status=status.HTTP_400_BAD_REQUEST)
+            except User.DoesNotExist:
+                return Response({'detail': 'User with this email does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Generate a password reset token
+            token = default_token_generator.make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            current_domain = request.build_absolute_uri("/")
+            reset_url = f"{current_domain.rstrip('/')}{reverse('password_reset_confirm', args=[uid, token])}"
+            # reset_url = f"https://site/password-reset/{uid}/{token}"
+
+            # Send the reset password email using EmailUtils
+            email_subject = 'Reset your password'
+            email_body = f'Click the following link to reset your password:\n\n{reset_url}'
+            EmailUtils.send_password_reset_email(email_subject, email_body, email)
+
+            return Response({'detail': 'Password reset email sent.'}, status=status.HTTP_200_OK)
         
-        return Response({'message': 'Password successfully reset'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 
+class PasswordResetView(APIView):
+    serializer_class = PasswordResetSerializer
 
+    def post(self, request, uidb64, token):
+        serializer = self.serializer_class(data=request.data)
 
-class ForgotPasswordView(APIView):
-    def post(self, request, *args, **kwargs):
-        serializer = ForgotPasswordSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        if serializer.is_valid():
+            try:
+                # Decode the uidb64 to get the user's primary key
+                user_id = force_str(urlsafe_base64_decode(uidb64))
+                user = User.objects.get(pk=user_id)
 
-        email = serializer.validated_data.get('email')
-        # Perform forgot password logic here
-        # You might send an email with a reset link or an OTP to the provided email
+                # Check if the token is valid for the user
+                if default_token_generator.check_token(user, token):
+                    new_password = serializer.validated_data['new_password']
+
+                    # Set the new password and save the user
+                    user.set_password(new_password)
+                    user.save()
+
+                    return Response({'detail': 'Password successfully reset.'}, status=status.HTTP_200_OK)
+                else:
+                    return Response({'error': 'Invalid token.'}, status=status.HTTP_400_BAD_REQUEST)
+            except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+                return Response({'error': 'Invalid user.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class VerifyEmail(generics.GenericAPIView ):
+    serializer_class = EmailVerificationSerializer
+
+    token_param_config = openapi.Parameter(
+        'token', in_=openapi.IN_QUERY, description='Description', type=openapi.TYPE_STRING)
+
+    def get(self, request):
+        token = request.GET.get('token')
+        try:
+            payload = jwt.decode(token, options={"verify_signature": False})
+            print(payload)
+            user = User.objects.get(id=payload['user_id'])
+            if not user.is_online:
+                user.is_online = True
+                user.is_active = True
+                user.save()
+            return Response({'email': 'Successfully activated'}, status=status.HTTP_200_OK)
+        except jwt.ExpiredSignatureError as identifier:
+            return Response({'error': 'Activation Expired'}, status=status.HTTP_400_BAD_REQUEST)
+        except jwt.exceptions.DecodeError as identifier:
+            return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
         
-        # Example: Sending an OTP or reset link to the provided email
-        # Your implementation goes here
+
         
-        return Response({'message': 'Password reset instructions sent successfully'}, status=status.HTTP_200_OK)
+
+# class ResetPasswordAPIView(APIView):
+#     def post(self, request):
+#         serializer = ResetPasswordSerializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+
+#         email = serializer.validated_data.get('email')
+#         new_password = serializer.validated_data.get('new_password')
+
+#         # Retrieve the user based on the validated email
+#         from .models import CustomUser  # Import your user model
+#         user = CustomUser.objects.get(email=email)
+        
+#         # Reset the user's password
+#         user.set_password(new_password)
+#         user.save()
+
+#         return Response({'message': 'Password reset successfully'}, status=status.HTTP_200_OK)
+
+
+
+# class ForgotPasswordAPIView(APIView):
+
+#     def post(self, request):
+#         serializer =ForgotPasswordSerializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+
+#         email = serializer.validated_data.get('email')
+
+#         user = AccountUser.objects.filter(email=email).first()
+#         if user:
+#             # Assuming send_email_verification_code is a function to send verification codes to emails
+#             send_email_verification_code(email)  # Implement this function to send email verification codes
+
+#             # You can also generate and return a session key or token if needed for subsequent steps
+
+#             return Response({'message': 'Verification code sent successfully'}, status=status.HTTP_200_OK)
+#         else:
+#             return Response({'message': 'Email address does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
+
+# class EmailOTPVerificationView(APIView):
+#     def post(self, request):
+#         serializer = EmailOTPSerializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+
+#         email = serializer.validated_data.get('email')
+
+#         # Generate and send the email OTP
+#         send_email_otp(email)  # Implement this function to send email OTP
+
+#         return Response({'message': 'Email OTP sent successfully'}, status=status.HTTP_200_OK)
+    
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# class ContactListView(generics.ListAPIView):
+#     permission_classes = [permissions.IsAuthenticated]
+#     serializer_class = UserSerializer
+
+#     def get_queryset(self):
+#         current_user = self.request.user
+#         following_query = Q(followers__follower=current_user)
+#         followers_query = Q(following__following=current_user)
+#         queryset = AccountUser.objects.filter(following_query | followers_query).exclude(id=current_user.id).distinct()
+#         return queryset
+    
+
+
+
+    
+
+# # Chat APp
+# class MyInbox(generics.ListAPIView):
+#     serializer_class = MessageSerializer
+
+#     def get_queryset(self):
+#         user_id = self.kwargs['user_id']
+
+#         messages = ChatMessage.objects.filter(
+#             id__in =  Subquery(
+#                 AccountUser.objects.filter(
+#                     Q(sender__reciever=user_id) |
+#                     Q(reciever__sender=user_id)
+#                 ).distinct().annotate(
+#                     last_msg=Subquery(
+#                         ChatMessage.objects.filter(
+#                             Q(sender=OuterRef('id'),reciever=user_id) |
+#                             Q(reciever=OuterRef('id'),sender=user_id)
+#                         ).order_by('-id')[:1].values_list('id',flat=True) 
+#                     )
+#                 ).values_list('last_msg', flat=True).order_by("-id")
+#             )
+#         ).order_by("-id")
+            
+#         return messages
+    
+# class GetMessages(generics.ListAPIView):
+#     serializer_class = MessageSerializer
+    
+#     def get_queryset(self):
+#         sender_id = self.kwargs['sender_id']
+#         reciever_id = self.kwargs['reciever_id']
+#         messages =  ChatMessage.objects.filter(sender__in=[sender_id, reciever_id], reciever__in=[sender_id, reciever_id])
+#         return messages
+
+# class SendMessages(generics.CreateAPIView):
+#     serializer_class = MessageSerializer
+
+
+
+# class ProfileDetail(generics.RetrieveUpdateAPIView):
+#     serializer_class = ProfileSerializer
+#     queryset = Profile.objects.all()
+#     permission_classes = [IsAuthenticated]  
+
+
+# class SearchUser(generics.ListAPIView):
+#     serializer_class = ProfileSerializer
+#     queryset = Profile.objects.all()
+#     permission_classes = [IsAuthenticated]  
+
+#     def list(self, request, *args, **kwargs):
+#         username = self.kwargs['username']
+#         logged_in_user = self.request.user
+#         users = Profile.objects.filter(Q(user__username__icontains=username) | Q(full_name__icontains=username) | Q(user__email__icontains=username) & 
+#                                        ~Q(user=logged_in_user))
+
+#         if not users.exists():
+#             return Response(
+#                 {"detail": "No users found."},
+#                 status=status.HTTP_404_NOT_FOUND
+#             )
+
+#         serializer = self.get_serializer(users, many=True)
+#         return Response(serializer.data)
 
 
 

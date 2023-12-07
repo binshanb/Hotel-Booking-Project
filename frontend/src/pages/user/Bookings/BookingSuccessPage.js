@@ -8,14 +8,18 @@ import {
   Container,
 } from '@mui/material';
 
-import { useLocation,Link } from 'react-router-dom'; 
-
+import { Link } from 'react-router-dom'; 
+import { useSelector } from 'react-redux';
 const BookingSuccessPage = () => {
   // Use the location hook to get data passed from the previous page (if needed)
 
-  const location = useLocation();
-  const bookingId = location.state?.bookingRoomData.id || '';  // Access the booking ID if passed from the previous page
-  console.log(bookingId,"dataa")
+
+  const bookingInfos = useSelector((state) => state.bookingInfo);
+  console.log(bookingInfos,"infossssssssss"); // Access the booking info from Redux store
+  const bookingId = bookingInfos ? bookingInfos.id : null; // Check if bookingInfos is defined
+
+  console.log(bookingId,"infossssssssss");
+
 
   return (
     <Container maxWidth="sm">
