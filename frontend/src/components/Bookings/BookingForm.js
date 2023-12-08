@@ -69,42 +69,72 @@ const BookingForm = ({roomId}) => {
       [e.target.name]: e.target.value,
     });
   };
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-   
-  try {
-    // Validating dates before conversion
-    if (formData.check_in && formData.check_out) {
-      const checkInDate = new Date(formData.check_in);
-      const checkOutDate = new Date(formData.check_out);
-
-      if (!isNaN(checkInDate) && !isNaN(checkOutDate)) {
-        // Converting valid dates to ISO string format
-        const formattedData = {
-          ...formData,
-          user: decodedUserInfo.user_id,
-          room: roomInfo.id,
-          check_in: checkInDate.toISOString(),
-          check_out: checkOutDate.toISOString(),
-        };
-        console.log(formattedData,"this is formatted data");
-
-        const response = await instance.post(`${baseUrl}/api/booking/add-roombooking/`, formattedData);
-
-         alert('Booking added,Go for Payments to Complete!!!');
-        // Additional logic after successful booking creation
-      dispatch(activateBookingInfo ({...response.data.data}));
-       if (response && response.data) {
-        const bookingId = response.data.id;
-        navigate(`/roombooking-page/${bookingId}`)}}
-        }} catch (error) {
-             console.error('Error creating booking:', error);
-         if (error.response) {
-           console.error('Response data:', error.response.data);
-               }
-  alert('An error occurred while booking. Please try again.');
-}
-  }
+  
+    try {
+      // Validate formData and retrieve needed information
+      // ... (assuming formData, decodedUserInfo, and roomInfo are defined)
+  
+      if (formData.check_in && formData.check_out) {
+        // Construct Date objects from formData
+        const checkInDate = new Date(formData.check_in);
+        const checkOutDate = new Date(formData.check_out);
+  
+        // Check if the dates are valid
+        if (!isNaN(checkInDate) && !isNaN(checkOutDate)) {
+          // Convert dates to IST (India Standard Time)
+          const istTimezone = 'Asia/Kolkata';
+  
+          const checkInIST = new Date(checkInDate.toLocaleString('en-US', { timeZone: istTimezone }));
+          const checkOutIST = new Date(checkOutDate.toLocaleString('en-US', { timeZone: istTimezone }));
+  
+          // Format dates as ISO strings
+          const formattedData = {
+            ...formData,
+            user: decodedUserInfo.user_id,
+            room: roomInfo.id,
+            check_in: checkInIST.toISOString(),
+            check_out: checkOutIST.toISOString(),
+          };
+  
+          console.log(formattedData, "This is formatted data");
+  
+          try {
+            // Perform API call to create a booking
+            const response = await instance.post(`${baseUrl}/api/booking/add-roombooking/`, formattedData);
+  
+            // Check if the booking creation was successful
+            if (response && response.data) {
+              const bookingId = response.data.id;
+              dispatch(activateBookingInfo({...response.data.data}));
+              alert('Booking added. Proceed to Payments to Complete!');
+              navigate(`/roombooking-page/${bookingId}`);
+            }
+          } catch (error) {
+            console.error('Error creating booking:', error);
+            if (error.response) {
+              console.error('Response data:', error.response.data);
+            }
+            alert('An error occurred while booking. Please try again.');
+          }
+        } else {
+          console.error('Invalid check-in or check-out date format!');
+          // Handle the error or notify the user about invalid date format
+        }
+      } else {
+        console.error('Missing check-in or check-out date!');
+        // Handle the error or notify the user about missing date information
+      }
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      // Handle the error accordingly (e.g., display an error message to the user)
+      alert('An error occurred while processing. Please try again.');
+    }
+  };
+  
 
   
 
@@ -152,7 +182,7 @@ const BookingForm = ({roomId}) => {
           <Grid item xs={12}>
             <TextField
               label="Check in Date"
-              type="datetime-local"
+              type="date"
               name="check_in"
               value={formData.check_in}
               placeholder="Enter CheckinDate"
@@ -164,7 +194,7 @@ const BookingForm = ({roomId}) => {
           <Grid item xs={12}>
             <TextField
               label="Check Out Date"
-              type="datetime-local"
+              type="date"
               name="check_out"
               value={formData.check_out}
               placeholder="Enter CheckoutDate"

@@ -3,7 +3,7 @@ import Modal from "react-modal";
 import { FaTimes, FaImage, FaTrash } from "react-icons/fa";
 import { FcAddImage } from "react-icons/fc";
 import { toast } from 'react-toastify';
-import axios from 'axios'; // import axios for HTTP requests
+
 import { adminInstance } from "../../../utils/Axios";
 
 export default function AddRoomModal({
@@ -31,7 +31,7 @@ export default function AddRoomModal({
 
   const handleAddRoom = async (e) => {
     e.preventDefault();
-    const errors = validate(roomData);
+    const errors =validate(roomData);
     setFormError(errors);
 
     if (Object.keys(errors).length === 0) {
@@ -59,6 +59,9 @@ export default function AddRoomModal({
             room_size: 0,
             cover_image: null,
             description: "",
+            category: "", // Add category field
+            features: [],// Add features field as an array
+            images:[],
           });
           setFormError({});
           onRequestClose();
@@ -86,19 +89,56 @@ export default function AddRoomModal({
     const { name, value } = e.target;
     setRoomData({ ...roomData, [name]: value });
   };
-
   const validate = (roomData) => {
     const errors = {};
-
-    // Perform validation checks here for each field in roomData
-    // For example:
-    if (!roomData.title) {
-      errors.title = "Title is required";
+  
+    // Validate category field
+    if (!roomData.category || roomData.category.trim() === "") {
+      errors.category = "Category is required";
     }
-    // Add more validations for other fields...
-
+  
+    // Validate features field (assuming it's an array)
+    if (!roomData.features || roomData.features.length === 0) {
+      errors.features = "Features are required";
+    }
+  
+    // Validate cover_image field (assuming it's a file)
+    if (!roomData.cover_image || !isFile(roomData.cover_image)) {
+      errors.cover_image = "Please select a valid image file for the cover";
+    }
+  
     return errors;
   };
+  
+  // Function to check if it's a file
+  const isFile = (file) => {
+    return file instanceof File || (file instanceof Blob && typeof file.name === 'string');
+  };
+  const handleSubmit = async () => {
+    const errors = validate(roomData);
+  
+    if (Object.keys(errors).length === 0) {
+      try {
+        // Proceed with submitting the form or any other action
+        // Example: Submit the data to the server using Axios or fetch
+        const response = await adminInstance.post('booking/admin/add-room', roomData);
+        
+        // Handle response
+        if (response.status === 201) {
+          // Room added successfully, perform necessary actions (e.g., reset form fields, show success message)
+          console.log('Room added successfully!');
+          // Reset form data or show success message
+        }
+      } catch (error) {
+        console.error('Error adding room:', error);
+        // Handle error response from the server (e.g., display error messages)
+      }
+    } else {
+      // Handle validation errors (errors object contains validation error messages)
+      console.log('Validation errors:', errors);
+    }
+  };
+  
   const handleCategoryChange = (e) => {
     setRoomData({ ...roomData, category: e.target.value });
   };

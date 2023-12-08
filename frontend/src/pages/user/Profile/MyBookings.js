@@ -98,7 +98,7 @@
                 <TableCell>Room Title</TableCell>
                 <TableCell align="centre">Check-in</TableCell>
                 <TableCell align="centre">Check-out</TableCell>
-                <TableCell align="right">Booking Amount</TableCell>
+                <TableCell align="right">Amount Per Day</TableCell>
 
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
@@ -149,7 +149,7 @@
     );
   };
 
-  export default MyBookings;
+export default MyBookings;
 
 
 

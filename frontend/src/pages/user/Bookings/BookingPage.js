@@ -213,6 +213,15 @@ function BookingPage  ({ razorpayKey}) {
         <Typography variant="body1">
           Price Per Night: {roomData ? roomData.price_per_night : ''}
         </Typography>
+        <Typography variant="body1">
+          Check In Date : {bookingData.check_in}
+        </Typography>
+        <Typography variant="body1">
+          Check Out Date : { bookingData.check_out}
+        </Typography>
+        <Typography variant="body1">
+          Number Of Guests : {bookingData.number_of_guests}
+        </Typography>
         <Divider />
         <Typography variant="body1">Total Price: ${price}</Typography>
 

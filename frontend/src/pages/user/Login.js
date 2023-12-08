@@ -105,8 +105,8 @@ function UserLogin() {
         </Button>
         <Box textAlign="end" mt={2}>
           <Typography>
-            <RouterLink to="/forgot-password">Forgot Password ?</RouterLink> |
-            <RouterLink to="/password-reset">Reset Password ?</RouterLink> |
+            {/* <RouterLink to="/forgot-password">Forgot Password ?</RouterLink> |
+            <RouterLink to="/change-password">Change Password ?</RouterLink> | */}
             <RouterLink to="/signup" className="ms-2">
               Sign up
             </RouterLink>
@@ -118,7 +118,9 @@ function UserLogin() {
         <Typography>
           <RouterLink to="/user/send-otp" className="ms-2">
             Otp Login
-          </RouterLink>
+          </RouterLink>|
+          <RouterLink to="/forgot-password/">Forgot Password ? </RouterLink> |
+            <RouterLink to="/change-password/">Change Password?  </RouterLink> |
         </Typography>
       </Box>
     </Box>

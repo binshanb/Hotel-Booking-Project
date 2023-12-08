@@ -372,6 +372,19 @@ class RoomCheckoutView(generics.UpdateAPIView):
     serializer_class = RoomSerializer
     lookup_field = 'pk'
 
+class BookingReportView(generics.ListAPIView):
+    queryset = RoomBooking.objects.all()
+    serializer_class = RoomBookingSerializer
+
+    def get_queryset(self):
+        # Logic to filter bookings for the report based on parameters, dates, etc.
+        # Example: Fetch bookings within a date range
+        start_date = self.request.query_params.get('start_date')
+        end_date = self.request.query_params.get('end_date')
+        if start_date and end_date:
+            return RoomBooking.objects.filter(check_in__range=[start_date, end_date])
+        else:
+            return RoomBooking.objects.all()
 # class RoomCheckoutView(generics.UpdateAPIView):
 #     queryset = RoomBooking.objects.all()
 #     serializer_class = RoomBookingSerializer

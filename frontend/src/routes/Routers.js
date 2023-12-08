@@ -35,6 +35,7 @@ import ForgotPassword from '../pages/user/ForgotPassword'
 import UserChat from '../pages/user/Chat/UserChat'
 import AdminChat from '../pages/admin/AdminChat'
 import BookingReport from '../pages/admin/Booking/BookingReport'
+import ChangePassword from '../pages/user/ChangePassword'
 
 
 
@@ -61,7 +62,9 @@ const Routers = () => {
         <Route path='/user/user-profile' element={<UserProfile/>} />
         
         <Route path='/logout' element={<Logout/>} />
-        <Route path='/forgot-password' element={< ForgotPassword/>} />
+
+        <Route path='/change-password' element={<ChangePassword />} />
+        <Route path='/forgot-password' element={<ForgotPassword/>} />
         <Route path='/password-reset/:uid/:token' element={< PasswordResetWrapper/>} />
         
         <Route path='/messages' element={<UserChat/>} />
@@ -92,6 +95,8 @@ const Routers = () => {
         <Route path='/roombooking-page/:id' element={<BookingPage/>} />
         <Route path='/booking-success' element={<BookingSuccessPage/>} />
         <Route path='/my-bookings/:user_id' element={<MyBookings/>} />
+        <Route path='/booking-report' element={<BookingReport/>} />
+
         <Route path='/reviews' element={<Reviews/>} />
         <Route path='/reviews' element={<ReviewList/>} />
         <Route path='/roombooking-page/cancel-booking/:bookingId' element={<CancelMyBooking/>} />

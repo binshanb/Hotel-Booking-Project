@@ -35,6 +35,7 @@ urlpatterns = [
     path('booking-list/', RoomBookingListView.as_view(), name='booking-list'),
     path('my-bookings/<int:user_id>/', UserBookingsView.as_view(), name='my-bookings'),
     path('cancel-booking/<int:pk>/', RoomBookingCancellationView.as_view(), name='cancel-booking'),
+    path('booking-report/', BookingReportView.as_view(), name='booking-report'),
 
     # path('booking-detail/<int:pk>/', RoomBookingDetailView.as_view(), name='booking-list'),
 
