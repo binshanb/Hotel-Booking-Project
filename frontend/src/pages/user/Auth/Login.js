@@ -1,9 +1,9 @@
-import "./Login.css";
+import  "./Login.css";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { useLoginMutation } from "../../redux/slices/userslices/userApiSlice";
-import { setCredentials } from "../../redux/slices/userslices/authSlice";
+import { useLoginMutation } from "../../../redux/slices/userslices/userApiSlice";
+import { setCredentials } from "../../../redux/slices/userslices/authSlice";
 import { ToastContainer,toast  } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Box, Button, FormControl, FormHelperText, Input, Typography } from '@mui/material';
@@ -118,9 +118,9 @@ function UserLogin() {
         <Typography>
           <RouterLink to="/user/send-otp" className="ms-2">
             Otp Login
-          </RouterLink>|
-          <RouterLink to="/forgot-password/">Forgot Password ? </RouterLink> |
-            <RouterLink to="/change-password/">Change Password?  </RouterLink> |
+          </RouterLink> |
+          <RouterLink to="/forgot-password/"> Forgot Password ? </RouterLink> |
+           
         </Typography>
       </Box>
     </Box>

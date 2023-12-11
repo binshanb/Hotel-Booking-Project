@@ -7,23 +7,17 @@ from rest_framework import generics,permissions
 from rest_framework.generics import UpdateAPIView,RetrieveAPIView
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
-from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import check_password
 from django.urls import reverse
-from .utils import Util, EmailUtils
+from .utils import Util
 from drf_yasg import openapi
 import jwt
-
-# from .utils import send_email_verification_code
-
-# from .email_utils import send_email_otp
-
 from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTTokenUserAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .serializers import UserRegisterSerializer,ChangePasswordSerializer,EmailVerificationSerializer,ForgotPasswordSerializer,PasswordResetSerializer
-from .serializers import CustomTokenObtainPairSerializer,CustomTokenRefreshSerializer,UserSerializer
+from .serializers import CustomTokenObtainPairSerializer,CustomTokenRefreshSerializer,UserSerializer,SendPasswordResetEmailSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView ,TokenRefreshView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -35,6 +29,8 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from accounts.renderers import UserRenderer
+
 
 
 User = get_user_model()
@@ -158,6 +154,7 @@ class UserDetailView(RetrieveAPIView):
     
     def get_object(self):
         return self.request.user
+    
 class ForgotPasswordView(generics.GenericAPIView):
     serializer_class = ForgotPasswordSerializer
     permission_classes = [permissions.AllowAny]
@@ -184,41 +181,23 @@ class ForgotPasswordView(generics.GenericAPIView):
             # Send the reset password email using EmailUtils
             email_subject = 'Reset your password'
             email_body = f'Click the following link to reset your password:\n\n{reset_url}'
-            EmailUtils.send_password_reset_email(email_subject, email_body, email)
+            Util.send_password_reset_email(email_subject, email_body, email)
 
             return Response({'detail': 'Password reset email sent.'}, status=status.HTTP_200_OK)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+# # views.py
+# from rest_framework.generics import UpdateAPIView
+# from rest_framework.permissions import IsAuthenticated
+# from rest_framework import status
+# from rest_framework.response import Response
+# from django.contrib.auth.models import User
+# from rest_framework import serializers
+# from rest_framework import exceptions
+# from django.contrib.auth.hashers import check_password
 
-class PasswordResetView(APIView):
-    serializer_class = PasswordResetSerializer
-
-    def post(self, request, uidb64, token):
-        serializer = self.serializer_class(data=request.data)
-
-        if serializer.is_valid():
-            try:
-                # Decode the uidb64 to get the user's primary key
-                user_id = force_str(urlsafe_base64_decode(uidb64))
-                user = User.objects.get(pk=user_id)
-
-                # Check if the token is valid for the user
-                if default_token_generator.check_token(user, token):
-                    new_password = serializer.validated_data['new_password']
-
-                    # Set the new password and save the user
-                    user.set_password(new_password)
-                    user.save()
-
-                    return Response({'detail': 'Password successfully reset.'}, status=status.HTTP_200_OK)
-                else:
-                    return Response({'error': 'Invalid token.'}, status=status.HTTP_400_BAD_REQUEST)
-            except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-                return Response({'error': 'Invalid user.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+# from .serializers import ChangePasswordSerializer
 
 class ChangePasswordView(generics.UpdateAPIView):
     serializer_class = ChangePasswordSerializer
@@ -242,7 +221,21 @@ class ChangePasswordView(generics.UpdateAPIView):
             return Response({'detail': 'Password successfully changed.'}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
+
+class SendPasswordResetEmailView(APIView):
+  renderer_classes = [UserRenderer]
+  def post(self, request, format=None):
+    serializer = SendPasswordResetEmailSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    return Response({'msg':'Password Reset link send. Please check your Email'}, status=status.HTTP_200_OK)
+
+class PasswordResetView(APIView):
+  renderer_classes = [UserRenderer]
+  def post(self, request, uid, token, format=None):
+    serializer = PasswordResetSerializer(data=request.data, context={'uid':uid, 'token':token})
+    serializer.is_valid(raise_exception=True)
+    return Response({'msg':'Password Reset Successfully'}, status=status.HTTP_200_OK)
 
 class VerifyEmail(generics.GenericAPIView ):
     serializer_class = EmailVerificationSerializer
@@ -267,7 +260,34 @@ class VerifyEmail(generics.GenericAPIView ):
             return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
         
 
-        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # class ResetPasswordAPIView(APIView):
 #     def post(self, request):

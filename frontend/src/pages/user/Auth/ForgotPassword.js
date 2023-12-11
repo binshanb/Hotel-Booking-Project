@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import forgotPasswordApi from "../../api/forgotPasswordApi";
+import forgotPasswordApi from "../../../api/forgotPasswordApi";
 
 const ForgotPassword = () => {
   const [errors, setErrors] = useState({});

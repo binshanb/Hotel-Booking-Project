@@ -3,14 +3,14 @@ import { baseUrl } from '../utils/constants';
 
 const changePasswordApi = async (oldPassword, password) => {
   try {
-    const accessToken = localStorage.getItem('access_token');
+    const accessToken = localStorage.getItem('access');
 
     const formData = new FormData();
     if (oldPassword) formData.append('old_password', oldPassword);
     if (password) formData.append('new_password', password);
 
 
-    const response = await instance.put(`${baseUrl}/api/users/change-password/`, formData, {
+    const response = await instance.put(`${baseUrl}/api/change-password/`, formData, {
       headers: {
         Accept: 'application/json',
         Authorization: `Bearer ${accessToken}`,

@@ -2,7 +2,7 @@
 import React from "react";
 import {MdOutlineLogout} from 'react-icons/md';
 import { useDispatch } from "react-redux";
-import {logout } from "../../redux/slices/userslices/authSlice";
+import {logout } from "../../../redux/slices/userslices/authSlice";
 import { useNavigate } from "react-router-dom";
 
 function Logout () {

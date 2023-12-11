@@ -7,7 +7,7 @@ const forgotPasswordApi = async (email) => {
 
     if (email) formData.append('email', email);
 
-    const response = await instance.post(`${baseUrl}/api/users/forgot-password/`, formData, {
+    const response = await instance.post(`${baseUrl}/api/forgot-password/`, formData, {
       headers: {
         Accept: 'application/json',
       },

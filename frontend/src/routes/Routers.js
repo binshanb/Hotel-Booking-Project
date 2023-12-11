@@ -4,11 +4,11 @@ import AdminDashboard from '../pages/admin/AdminDashBoard'
 import HomePage from '../pages/user/Home/HomePage'
 import RouteUser from '../utils/RouteUser'
 import RouteAdmin from  '../utils/RouteAdmin'
-import Login from '../pages/user/Login'
-import Register from '../pages/user/Register'
+import Login from '../pages/user/Auth/Login'
+import Register from '../pages/user/Auth/Register'
 import AdminLogin from '../pages/admin/AdminLogin'
 import UserManagement from '../pages/admin/UserManagement'
-import Logout from '../pages/user/Logout'
+import Logout from '../pages/user/Auth/Logout'
 import AdminLogout from '../pages/admin/AdminLogout'
 import UserProfile from '../pages/user/Profile/UserProfile'
 import CategoryList from '../pages/user/Rooms/CategoryList'
@@ -30,12 +30,12 @@ import CancelMyBooking from '../pages/user/Profile/CancelMyBooking'
 import AvailableRoomsPage from '../pages/user/Bookings/AvailableRoomsPage'
 import Reviews from '../pages/user/Review/Reviews'
 import ReviewList from '../pages/user/Review/ReviewList'
-import PasswordResetWrapper from '../pages/user/ResetPassword'
-import ForgotPassword from '../pages/user/ForgotPassword'
+import PasswordResetWrapper from '../pages/user/Auth/ResetPassword'
+import ForgotPassword from '../pages/user/Auth/ForgotPassword'
 import UserChat from '../pages/user/Chat/UserChat'
 import AdminChat from '../pages/admin/AdminChat'
 import BookingReport from '../pages/admin/Booking/BookingReport'
-import ChangePassword from '../pages/user/ChangePassword'
+import ChangePassword from '../pages/user/Auth/ChangePassword'
 
 
 
@@ -56,15 +56,19 @@ const Routers = () => {
          
       <Route path='/signup' element={<Register />} />
       <Route path='/login' element={<Login/>} />
+      
+      
+      <Route path='/forgot-password' element={<ForgotPassword/>} />
+      <Route path='/change-password' element={<ChangePassword />} />
+      <Route path="/" element={<HomePage/>}/>
       <Route path='' element={<RouteUser/>} >
-        <Route path="/" element={<HomePage/>}/>
+        b
          
         <Route path='/user/user-profile' element={<UserProfile/>} />
         
         <Route path='/logout' element={<Logout/>} />
 
-        <Route path='/change-password' element={<ChangePassword />} />
-        <Route path='/forgot-password' element={<ForgotPassword/>} />
+     
         <Route path='/password-reset/:uid/:token' element={< PasswordResetWrapper/>} />
         
         <Route path='/messages' element={<UserChat/>} />
