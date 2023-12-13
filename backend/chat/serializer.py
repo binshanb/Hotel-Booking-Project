@@ -1,11 +1,53 @@
 from rest_framework import serializers
-from .models import Message
+from .models import Message, ChatRoom
+from accounts.serializers import UserSerializer  # Import the AccountUser serializer if available
+
 
 class MessageSerializer(serializers.ModelSerializer):
-       class Meta:
-           model = Message
-           fields = ('id', 'username', 'content', 'timestamp')
-           read_only_fields = ('id', 'timestamp')
+    class Meta:
+        model = Message
+        fields = '__all__'
+
+
+class ChatRoomSerializer(serializers.ModelSerializer):
+    messages = MessageSerializer(many=True, read_only=True)
+    agent = UserSerializer()  # Assuming AccountUserSerializer exists
+
+    class Meta:
+        model = ChatRoom
+        fields = '__all__'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# from rest_framework import serializers
+# from .models import Message
+
+# class MessageSerializer(serializers.ModelSerializer):
+#        class Meta:
+#            model = Message
+#            fields = ('id', 'username', 'content', 'timestamp')
+#            read_only_fields = ('id', 'timestamp')
 
 
 

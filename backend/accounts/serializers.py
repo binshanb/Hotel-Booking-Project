@@ -170,30 +170,33 @@ class SendPasswordResetEmailSerializer(serializers.Serializer):
     else:
       raise serializers.ValidationError('You are not a Registered User')
 
-class PasswordResetSerializer(serializers.Serializer):
-  password = serializers.CharField(max_length=255, style={'input_type':'password'}, write_only=True)
-  password2 = serializers.CharField(max_length=255, style={'input_type':'password'}, write_only=True)
-  class Meta:
-    fields = ['password', 'password2']
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    new_password = serializers.CharField(
+        style={'input_type': 'password'},
+        write_only=True
+    )
+    confirm_new_password = serializers.CharField(
+        style={'input_type': 'password'},
+        write_only=True
+    )
 
-  def validate(self, attrs):
-    try:
-      password = attrs.get('password')
-      password2 = attrs.get('password2')
-      uid = self.context.get('uid')
-      token = self.context.get('token')
-      if password != password2:
-        raise serializers.ValidationError("Password and Confirm Password doesn't match")
-      id = smart_str(urlsafe_base64_decode(uid))
-      user = User.objects.get(id=id)
-      if not PasswordResetTokenGenerator().check_token(user, token):
-        raise serializers.ValidationError('Token is not Valid or Expired')
-      user.set_password(password)
-      user.save()
-      return attrs
-    except DjangoUnicodeDecodeError as identifier:
-      PasswordResetTokenGenerator().check_token(user, token)
-      raise serializers.ValidationError('Token is not Valid or Expired')
+    def validate(self, data):
+        new_password = data.get('new_password')
+        confirm_new_password = data.get('confirm_new_password')
+
+        # Check if the passwords match
+        if new_password != confirm_new_password:
+            raise serializers.ValidationError("Passwords do not match.")
+
+        # Check if the password length is at least 8 characters
+        if len(new_password) < 8:
+            raise serializers.ValidationError("Password must be at least 8 characters long.")
+
+        # Check if there are spaces in the password
+        if ' ' in new_password:
+            raise serializers.ValidationError("Password cannot contain spaces.")
+
+        return data
   
 
 
@@ -201,31 +204,7 @@ class PasswordResetSerializer(serializers.Serializer):
 
 
 
-# class ResetPasswordSerializer(serializers.Serializer):
-#     email = serializers.EmailField()
-#     new_password = serializers.CharField(min_length=8)  # Define password validation rules if needed
 
-#     def validate_email(self, value):
-#         # Custom validation for the existence of the email in your system
-#         # You can add your own logic to check if the email exists in your user database
-#         from .models import CustomUser  # Import your user model
-#         try:
-#             user = CustomUser.objects.get(email=value)
-#         except CustomUser.DoesNotExist:
-#             raise serializers.ValidationError("User with this email does not exist")
-#         return value
-    
-# class ForgotPasswordSerializer(serializers.Serializer):
-#     email = serializers.EmailField()
-
-#     def validate_email(self, value):
-#         try:
-#             # Check if a user with the provided email exists in your User model
-#             user = User.objects.get(email=value)
-#         except User.DoesNotExist:
-#             raise serializers.ValidationError("User with this email does not exist")
-
-#         return value
     
 
 

@@ -16,7 +16,7 @@ import jwt
 from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTTokenUserAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .serializers import UserRegisterSerializer,ChangePasswordSerializer,EmailVerificationSerializer,ForgotPasswordSerializer,PasswordResetSerializer
+from .serializers import UserRegisterSerializer,ChangePasswordSerializer,EmailVerificationSerializer,ForgotPasswordSerializer,PasswordResetConfirmSerializer
 from .serializers import CustomTokenObtainPairSerializer,CustomTokenRefreshSerializer,UserSerializer,SendPasswordResetEmailSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView ,TokenRefreshView
@@ -130,23 +130,35 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         return self.request.user
     
-class UserProfileUpdateView(APIView):
-    permission_classes = [IsAuthenticated]
+class UserProfileCreateView(generics.CreateAPIView):
+    serializer_class = UserProfileSerializer
+    permission_classes = (IsAuthenticated,)
 
-    def get(self, request, *args, **kwargs):
-        user = self.request.user
-        serializer = UserProfileSerializer(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def put(self, request, *args, **kwargs):
-        user = self.request.user
-        serializer = UserProfileSerializer(user, data=request.data, partial=True)
+class UserProfileUpdateView(generics.UpdateAPIView):
+    serializer_class = UserProfileSerializer
+    permission_classes = (IsAuthenticated,)
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def get_queryset(self):
+        return AccountUser.objects.filter(user=self.request.user)
+    
+# class UserProfileUpdateView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request, *args, **kwargs):
+#         user = self.request.user
+#         serializer = UserProfileSerializer(user)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
+
+#     def put(self, request, *args, **kwargs):
+#         user = self.request.user
+#         serializer = UserProfileSerializer(user, data=request.data, partial=True)
+
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         else:
+#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
 class UserDetailView(RetrieveAPIView):
     serializer_class = UserSerializer
@@ -230,35 +242,33 @@ class SendPasswordResetEmailView(APIView):
     serializer.is_valid(raise_exception=True)
     return Response({'msg':'Password Reset link send. Please check your Email'}, status=status.HTTP_200_OK)
 
-class PasswordResetView(APIView):
-  renderer_classes = [UserRenderer]
-  def post(self, request, uid, token, format=None):
-    serializer = PasswordResetSerializer(data=request.data, context={'uid':uid, 'token':token})
-    serializer.is_valid(raise_exception=True)
-    return Response({'msg':'Password Reset Successfully'}, status=status.HTTP_200_OK)
+class PasswordResetConfirmView(APIView):
+    serializer_class = PasswordResetConfirmSerializer
 
-class VerifyEmail(generics.GenericAPIView ):
-    serializer_class = EmailVerificationSerializer
+    def post(self, request, uidb64, token):
+        serializer = self.serializer_class(data=request.data)
 
-    token_param_config = openapi.Parameter(
-        'token', in_=openapi.IN_QUERY, description='Description', type=openapi.TYPE_STRING)
+        if serializer.is_valid():
+            try:
+                # Decode the uidb64 to get the user's primary key
+                user_id = force_str(urlsafe_base64_decode(uidb64))
+                user = User.objects.get(pk=user_id)
 
-    def get(self, request):
-        token = request.GET.get('token')
-        try:
-            payload = jwt.decode(token, options={"verify_signature": False})
-            print(payload)
-            user = User.objects.get(id=payload['user_id'])
-            if not user.is_online:
-                user.is_online = True
-                user.is_active = True
-                user.save()
-            return Response({'email': 'Successfully activated'}, status=status.HTTP_200_OK)
-        except jwt.ExpiredSignatureError as identifier:
-            return Response({'error': 'Activation Expired'}, status=status.HTTP_400_BAD_REQUEST)
-        except jwt.exceptions.DecodeError as identifier:
-            return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
-        
+                # Check if the token is valid for the user
+                if default_token_generator.check_token(user, token):
+                    new_password = serializer.validated_data['new_password']
+
+                    # Set the new password and save the user
+                    user.set_password(new_password)
+                    user.save()
+
+                    return Response({'detail': 'Password successfully reset.'}, status=status.HTTP_200_OK)
+                else:
+                    return Response({'error': 'Invalid token.'}, status=status.HTTP_400_BAD_REQUEST)
+            except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+                return Response({'error': 'Invalid user.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 

@@ -11,6 +11,7 @@ import UserManagement from '../pages/admin/UserManagement'
 import Logout from '../pages/user/Auth/Logout'
 import AdminLogout from '../pages/admin/AdminLogout'
 import UserProfile from '../pages/user/Profile/UserProfile'
+import EditProfile from '../pages/user/Profile/EditProfile'
 import CategoryList from '../pages/user/Rooms/CategoryList'
 import Services from '../pages/user/Services/Services'
 import About from '../pages/user/About/About'
@@ -30,7 +31,7 @@ import CancelMyBooking from '../pages/user/Profile/CancelMyBooking'
 import AvailableRoomsPage from '../pages/user/Bookings/AvailableRoomsPage'
 import Reviews from '../pages/user/Review/Reviews'
 import ReviewList from '../pages/user/Review/ReviewList'
-import PasswordResetWrapper from '../pages/user/Auth/ResetPassword'
+import ResetPasswordWrapper from '../pages/user/Auth/ResetPassword'
 import ForgotPassword from '../pages/user/Auth/ForgotPassword'
 import UserChat from '../pages/user/Chat/UserChat'
 import AdminChat from '../pages/admin/AdminChat'
@@ -62,14 +63,16 @@ const Routers = () => {
       <Route path='/change-password' element={<ChangePassword />} />
       <Route path="/" element={<HomePage/>}/>
       <Route path='' element={<RouteUser/>} >
-        b
+        
          
         <Route path='/user/user-profile' element={<UserProfile/>} />
+       
+        <Route path='/user/update-profile/:user_id' element={<EditProfile/>} />
         
         <Route path='/logout' element={<Logout/>} />
 
      
-        <Route path='/password-reset/:uid/:token' element={< PasswordResetWrapper/>} />
+        <Route path='/reset-password-confirm/:uid/:token' element={< ResetPasswordWrapper/>} />
         
         <Route path='/messages' element={<UserChat/>} />
     

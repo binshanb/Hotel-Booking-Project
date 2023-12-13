@@ -1,9 +1,9 @@
 from django.urls import path
 from . import views
-from .views import  UserRegistrationView,GetRoutesView,UserProfileView #UserTokenView AdminTokenObtainPairView
+from .views import  UserRegistrationView,GetRoutesView,UserProfileView,UserProfileCreateView #UserTokenView AdminTokenObtainPairView
 from .views import CustomTokenObtainPairView, CustomTokenRefreshView,UserListView,BlockUnblockUserView,UserDetailView,UserProfileUpdateView
     
-from .views import VerifyEmail, ForgotPasswordView, PasswordResetView,ChangePasswordView,SendPasswordResetEmailView
+from .views import  ForgotPasswordView, PasswordResetConfirmView,ChangePasswordView,SendPasswordResetEmailView
 
 urlpatterns = [
     
@@ -13,16 +13,16 @@ urlpatterns = [
     path('token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
     path('admin/users/', UserListView.as_view(), name='user-list'),
     path('admin/block-unblock/<int:pk>/', BlockUnblockUserView.as_view(), name='block-unblock-user'),
-    path('user/user-profile/', UserProfileView.as_view(), name='user-profile'),
+    path('user/user-profile/<int:user_id>', UserProfileView.as_view(), name='user-profile'),
     path('user/detail-view/<int:user_id>/',UserDetailView.as_view(), name='user-detail'),
-    path('user/update-profile/', UserProfileUpdateView.as_view(), name='user-updation'),
+    path('user/add-profile/<int:user_id>', UserProfileCreateView.as_view(), name='user-profile-create'),
+    path('user/update-profile/<int:user_id>', UserProfileUpdateView.as_view(), name='user-updation'),
    
-    path('email-verify/', VerifyEmail.as_view(), name="email-verify"),
+    # path('email-verify/', VerifyEmail.as_view(), name="email-verify"),
     path('forgot-password/', ForgotPasswordView.as_view(), name='forgot-password'),
-    # path('reset-password/<str:uidb64>/<str:token>/', PasswordResetView.as_view(), name='password-reset'),
-    path('change-password/', ChangePasswordView.as_view(), name='changepassword'),
-    path('send-reset-password-email/', SendPasswordResetEmailView.as_view(), name='send-reset-password-email'),
-    path('reset-password/<uid>/<token>/', PasswordResetView.as_view(), name='reset-password'),
+    path('reset-password-confirm/<str:uidb64>/<str:token>/', PasswordResetConfirmView.as_view(), name='password-reset'),
+    path('change-password/', ChangePasswordView.as_view(), name='change-password'),
+   
 
     # path('user/reset-password/', ResetPasswordAPIView.as_view(), name='reset-password'),
     # path('user/forgot-password/', ForgotPasswordAPIView.as_view(), name='reset-password'),

@@ -14,11 +14,12 @@ const ForgotPassword = () => {
   };
 
   const validateEmail = (inputEmail) => {
-    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
     if (!emailRegex.test(inputEmail)) {
-      setErrors({ email: "Invalid email address" });
+      setErrors((prevErrors) => ({ ...prevErrors, email: "Invalid email address" }));
     } else {
-      setErrors({}); // Clear the error message if the email is valid
+      setErrors((prevErrors) => ({ ...prevErrors, email: "" })); // Clear the error message if the email is valid
     }
   };
 
@@ -45,13 +46,13 @@ const ForgotPassword = () => {
     <div className="container mx-auto bg-[#f9efeb]">
       <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          <Link to={"/"}>
+          {/* <Link to={"/"}>
             <img
               className="mx-auto h-10 rounded-full w-auto"
               src="NextNode.png"
               alt="Your Company"
             />
-          </Link>
+          </Link> */}
           <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-[#4d2c4d]">
             Forgot Password?
           </h2>

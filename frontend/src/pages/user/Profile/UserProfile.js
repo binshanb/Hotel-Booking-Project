@@ -1,28 +1,67 @@
-import React, { useState, useEffect } from "react";
-import "../../../pages/user/Profile/Style.css";
-import EditProfile from "./EditProfile";
-import instance from "../../../utils/Axios";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { makeStyles } from '@material-ui/core/styles';
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import Typography from '@material-ui/core/Typography';
+import Button from '@material-ui/core/Button';
+// import EditIcon from '@material-ui/icons/Edit';
+
+import { useNavigate } from 'react-router-dom';
+import AddProfile from './AddProfile';
 import { useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
+import jwtDecode from 'jwt-decode';
+import instance from '../../../utils/Axios';
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100vh',
+    backgroundColor: '#fcdad1',
+  },
+  card: {
+    maxWidth: 345,
+  },
+  avatar: {
+    width: theme.spacing(7),
+    height: theme.spacing(7),
+    margin: '0 auto',
+  },
+  button: {
+    margin: theme.spacing(1),
+  },
+}));
+
 
 
 
 function UserProfile() {
-
-  const user_id = useSelector((state) => state.auth.userInfo); // Access userId from Redux state
-  const token = useSelector((state) => state.auth.token);
+  const { user_id } = useParams();
+  const userInfos = useSelector((state) => state.auth.userInfo);
+  const [decodedUserInfo, setDecodedUserInfo] = useState({});// Access userId from Redux state
+  const token = useSelector((state) => state.auth.access);
+  const uid = useSelector((state) => state.auth.uidb64);
   const navigate = useNavigate();
-
+  const classes = useStyles();
   const [showForm, setShowForm] = useState(false);
   const [userData , setUserData] = useState('');
   
 
-
 useEffect(() => {
-  console.log('id',user_id)
+    if (userInfos) {
+      // Decode the token and set the user info state
+      const decodedInfo = jwtDecode(userInfos.access); // Assuming 'access' contains user details
+      setDecodedUserInfo(decodedInfo);
+    }},[]);
+
+const userIds = decodedUserInfo.user_id;
+useEffect(() => {
+  console.log('id',userIds)
   const fetchUserData = async () =>{
     try{
-      const response = await instance.get(`/api/user/detail-view/${user_id}/`, {
+      const response = await instance.get(`/api/user/detail-view/${userIds}/`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -34,86 +73,85 @@ useEffect(() => {
     }
   }
   fetchUserData();
-}, [user_id, token]);
-const handleMyBookingsClick = () => {
-  navigate(`/my-bookings/${user_id}/`); // Navigate to My Bookings page with the userId
+}, [userIds, token]);
+const handleUpdateProfileClick = () => {
+  navigate(`/user/update-profile/${userIds}`); // Navigate to My Bookings page with the userId
 };
+const handleMyBookingsClick = () => {
+  navigate(`/my-bookings/${userIds}/`); // Navigate to My Bookings page with the userId
+};
+const handleResetPasswordClick = () => {
+  // Check if uidb64 and token have valid values
+  if (uid && token) {
+    navigate(`/reset-password-confirm/${uid}/${token}/`);
+  } else {
+    // Handle scenario where uidb64 and token are missing or invalid
+    console.error('Invalid uidb64 or token');
+    // You might want to display an error message to the user or perform some other action here
+  }
+};
+
 const {first_name} = userData
   const  handleEditClick = () => {
+    navigate (`/user/update-profile/${userIds}`)
     setShowForm((prevShowForm) => !prevShowForm);
-  };
+  }; 
 
   return (
-    <div style={{ height: "100vh", backgroundColor: "	#fcdad1" }}>
-      <div className="container ">
-        <div className="row gutters row-with-padding">
-          <div className="col-xl-3 col-lg-3 col-md-12 col-sm-12 col-12 "style={{ height: "60vh", backgroundColor: "	#fcdad1" }}>
-            <div className="card h-100">
-              <div className="card-body">
-                <div className="account-settings">
-                  <div className="user-profile">
-                    <div className="user-avatar with-border flex items-center justify-center">
-                      <img
-                        src="https://unsplash.com/photos/man-in-black-crew-neck-shirt-wearing-black-framed-eyeglasses-V_SGZ48bl20"
-                        alt="Maxwell Admin"
-                        className="w-24 h-24 mx-auto rounded-full border-2 border-gold transition-transform hover:scale-125"
-                      />
-                    </div>
-                    <h5 className="user-name">{first_name}</h5>
-                    <h6 className="user-email">{userData.email}</h6>
-                  </div>
-                  <div className="centered-container">
-                    <div className="row-container">
-                      <div className="colum" onClick={handleEditClick}>
-                        <i
-                          className="fas fa-edit "
-                          style={{ color: "blue" }}
-                        ></i>
-                        <span className="icon" style={{ marginLeft: "10px" }}>
-                          Edit
-                        </span>
-                      </div>
-
-                      <div className="colum" onClick={handleMyBookingsClick}>
-                        <i
-                          className="fas fa-edit "
-                          style={{ color: "blue" }}
-                        ></i>
-                        <span className="icon" style={{ marginLeft: "10px" }}>
-                          My Bookings
-                        </span>
-                      </div>
-                      {/* <div className="colum">
-                       <i className="fas fa-certificate"style={{color:"gold"}}></i> 
-                      <span className="icon"style={{marginLeft:"10px"}}>
-                       Badge
-                      </span>
-                      </div> */}
-                      {/* <div className="colum">
-                      <i className="fas fa-eye"></i>
-                      <span className="icon"style={{marginLeft:"10px"}}>
-                         Views
-                      </span>
-                      </div> */}
-                      {/* <div className="colum">
-                      <i className="fas fa-users"></i> 
-                      <span className="icon" style={{ paddingLeft: "10px" }}>
-                        Followers
-                      </span>
-                      </div> */}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+    <div className={classes.root}>
+      <Card className={classes.card}>
+        <CardContent>
+          <div className={classes.avatar}>
+            <img
+              src=""
+              alt="Profile"
+              className="w-24 h-24 mx-auto rounded-full border-2 border-gold transition-transform hover:scale-125"
+            />
           </div>
-          <EditProfile />
-
-        </div>
-      </div>
+          <Typography gutterBottom variant="h5" component="h2" align="center">
+            {first_name}
+          </Typography>
+          <Typography variant="body2" color="textSecondary" component="p" align="center">
+            {userData.email}
+          </Typography>
+          <div className="centered-container">
+            {/* Other buttons and icons */}
+            <Button
+              variant="contained"
+              color="primary"
+              className={classes.button}
+              // startIcon={<EditIcon />}
+              onClick={handleEditClick}
+            >
+              Edit Profile
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              className={classes.button}
+              // startIcon={<EditIcon />}
+              onClick={handleMyBookingsClick}
+            >
+              My Bookings
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              className={classes.button}
+              // startIcon={<EditIcon />}
+              onClick={handleResetPasswordClick}
+            >
+              Reset Password
+            </Button>
+            {/* Other buttons */}
+          </div>
+        </CardContent>
+      </Card>
+      <AddProfile />
     </div>
   );
 }
+
 
 export default UserProfile;
 

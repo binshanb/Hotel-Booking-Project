@@ -2,8 +2,15 @@ import React, { useState, useEffect } from "react";
 import "../Profile/Style.css";
 import instance from "../../../utils/Axios";
 import { toast } from "react-toastify";
+import { baseUrl } from "../../../utils/constants";
+import jwtDecode from 'jwt-decode';
+import { useSelector } from "react-redux";
 
 function EditProfile() {
+
+  const userInfos = useSelector((state) => state.auth.userInfo);
+  
+  const [decodedUserInfo, setDecodedUserInfo] = useState({});
   const [formData, setFormData] = useState({
     first_name: "",
     address: "",
@@ -12,7 +19,15 @@ function EditProfile() {
     country:""
   });
 
+  useEffect(() => {
+    if (userInfos) {
+      // Decode the token and set the user info state
+      const decodedInfo = jwtDecode(userInfos.access); // Assuming 'access' contains user details
+      setDecodedUserInfo(decodedInfo);
+    }},[]);
 
+    const userIds = decodedUserInfo.user_id;
+  
   // Fetch the token from localStorage
   const userId = localStorage.getItem("userInfo")
     ? JSON.parse(localStorage.getItem("userInfo")).user_id
@@ -40,7 +55,7 @@ console.log(userId,'idddddddddd')
 
   const handleSubmit = async () => {
     try {
-      await instance.options(`/api/user/update-profile/`, formData, {
+      await instance.put(`${baseUrl}/api/user/update-profile/`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -56,7 +71,7 @@ console.log(userId,'idddddddddd')
     const fetchUserData = async () => {
       try {
         // Fetch user data
-        const response = await instance.get(`/api/user/user-profile/${userId}/`, {
+        const response = await instance.get(`/api/user/user-profile/${userIds}/`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

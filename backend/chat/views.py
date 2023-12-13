@@ -1,11 +1,56 @@
 from rest_framework import generics
-from .models import Message
-from .serializer import MessageSerializer
+from .models import Message, ChatRoom
+from .serializer import MessageSerializer, ChatRoomSerializer
 
-class MessageList(generics.ListCreateAPIView):
+class MessageCreateView(generics.CreateAPIView):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
-    ordering = ('-timestamp',)
+
+class MessageListView(generics.ListAPIView):
+    queryset = Message.objects.all()
+    serializer_class = MessageSerializer
+
+class ChatRoomCreateView(generics.CreateAPIView):
+    queryset = ChatRoom.objects.all()
+    serializer_class = ChatRoomSerializer
+
+class ChatRoomListView(generics.ListAPIView):
+    queryset = ChatRoom.objects.all()
+    serializer_class = ChatRoomSerializer
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# from rest_framework import generics
+# from .models import Message
+# from .serializer import MessageSerializer
+
+# class MessageList(generics.ListCreateAPIView):
+#     queryset = Message.objects.all()
+#     serializer_class = MessageSerializer
+#     ordering = ('-timestamp',)
 
 
 

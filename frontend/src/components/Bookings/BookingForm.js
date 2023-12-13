@@ -10,6 +10,12 @@ import { activateRoomInfo } from '../../redux/slices/roomslices/roomSlice';
 import { activateBookingInfo } from '../../redux/slices/bookingslices/bookingslice';
 import TextInput from '@mui/material/TextField';
 import Button from '@mui/material/Button';
+import { DatePicker } from "@mui/x-date-pickers";
+import { MuiPickersUtilsProvider } from '@material-ui/pickers';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+
+// import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns// Adapter for date functions
 import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
 import { makeStyles} from '@mui/styles';
@@ -42,8 +48,8 @@ const BookingForm = ({roomId}) => {
   
   const loading = useSelector((state) => state.room.loading);
   const error = useSelector((state) => state.room.error);
-  
   const [decodedUserInfo, setDecodedUserInfo] = useState({});
+ 
   
   const [formData, setFormData] = useState({
     check_in: '',
@@ -69,76 +75,80 @@ const BookingForm = ({roomId}) => {
       [e.target.name]: e.target.value,
     });
   };
+  
+  const handleCheckInDateChange = (date) => {
+    setFormData({
+      ...formData,
+      check_in: date,
+    });
+  };
 
-
+  const handleCheckOutDateChange = (date) => {
+    setFormData({
+      ...formData,
+      check_out: date,
+    });
+  };
+  function validateDate(date) {
+    const currentDate = new Date();
+    return date > currentDate;
+  }
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+
+    if (validateDate(formData.check_in) || validateDate(formData.check_out)) {
+      alert("Invalid date selection. Please choose future dates for check-in and checkout.");
+      return;
+    }
   
+    // try {
+    //   // Validate formData and retrieve needed information
+    //   // ... (assuming formData, decodedUserInfo, and roomInfo are defined)
+  
+    //   if (formData.check_in && formData.check_out) {
+    //     // Construct Date objects from formData
+    //     const checkInDate = new Date(formData.check_in);
+    //     const checkOutDate = new Date(formData.check_out);
+  
+    //     // Check if the dates are valid
+    //     if (!isNaN(checkInDate) && !isNaN(checkOutDate)) {
+    //       // Convert dates to IST (India Standard Time)
+    //       const istTimezone = 'Asia/Kolkata';
+  
+    //       // const checkInIST = new Date(checkInDate.toLocaleString('en-US', { timeZone: istTimezone }));
+    //       // const checkOutIST = new Date(checkOutDate.toLocaleString('en-US', { timeZone: istTimezone }));
+    //       const currentDate = AdapterDateFns.utcToday();
+    //       // Format dates as ISO strings
+    //       const formattedData = {
+    //         ...formData,
+    //         user: decodedUserInfo.user_id,
+    //         room: roomInfo.id,
+    //         // check_in: checkInIST.toISOString(),
+    //         // check_out: checkOutIST.toISOString(),
+    //       };
+  
+    //       console.log(formattedData, "This is formatted data");
+ 
     try {
-      // Validate formData and retrieve needed information
-      // ... (assuming formData, decodedUserInfo, and roomInfo are defined)
-  
-      if (formData.check_in && formData.check_out) {
-        // Construct Date objects from formData
-        const checkInDate = new Date(formData.check_in);
-        const checkOutDate = new Date(formData.check_out);
-  
-        // Check if the dates are valid
-        if (!isNaN(checkInDate) && !isNaN(checkOutDate)) {
-          // Convert dates to IST (India Standard Time)
-          const istTimezone = 'Asia/Kolkata';
-  
-          const checkInIST = new Date(checkInDate.toLocaleString('en-US', { timeZone: istTimezone }));
-          const checkOutIST = new Date(checkOutDate.toLocaleString('en-US', { timeZone: istTimezone }));
-  
-          // Format dates as ISO strings
-          const formattedData = {
-            ...formData,
-            user: decodedUserInfo.user_id,
-            room: roomInfo.id,
-            check_in: checkInIST.toISOString(),
-            check_out: checkOutIST.toISOString(),
-          };
-  
-          console.log(formattedData, "This is formatted data");
-  
-          try {
-            // Perform API call to create a booking
-            const response = await instance.post(`${baseUrl}/api/booking/add-roombooking/`, formattedData);
-  
-            // Check if the booking creation was successful
-            if (response && response.data) {
-              const bookingId = response.data.id;
-              dispatch(activateBookingInfo({...response.data.data}));
-              alert('Booking added. Proceed to Payments to Complete!');
-              navigate(`/roombooking-page/${bookingId}`);
-            }
-          } catch (error) {
-            console.error('Error creating booking:', error);
-            if (error.response) {
-              console.error('Response data:', error.response.data);
-            }
-            alert('An error occurred while booking. Please try again.');
-          }
-        } else {
-          console.error('Invalid check-in or check-out date format!');
-          // Handle the error or notify the user about invalid date format
-        }
-      } else {
-        console.error('Missing check-in or check-out date!');
-        // Handle the error or notify the user about missing date information
+      // Perform API call to create a booking
+      const response = await instance.post(`${baseUrl}/api/booking/add-roombooking/`, formData);
+    
+      // Check if the booking creation was successful
+      if (response && response.data) {
+        const bookingId = response.data.id;
+        dispatch(activateBookingInfo({ ...response.data.data }));
+        alert('Booking added. Proceed to Payments to Complete!');
+        navigate(`/roombooking-page/${bookingId}`);
       }
     } catch (error) {
       console.error('Error creating booking:', error);
-      // Handle the error accordingly (e.g., display an error message to the user)
-      alert('An error occurred while processing. Please try again.');
-    }
-  };
-  
-
-  
-
-  return (
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+      }
+      alert('An error occurred while booking. Please try again.');
+    }}
+return (
     <div>
       <h2>Room Booking Form</h2>
       <form className={classes.formContainer} onSubmit={handleSubmit}>
@@ -155,6 +165,7 @@ const BookingForm = ({roomId}) => {
               fullWidth
             />
           </Grid>
+          <Grid container spacing={3}></Grid>
           <Grid item xs={12}>
             <TextField
               label="User"
@@ -180,28 +191,28 @@ const BookingForm = ({roomId}) => {
             />
           </Grid>
           <Grid item xs={12}>
-            <TextField
-              label="Check in Date"
-              type="date"
-              name="check_in"
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <MuiPickersUtilsProvider utils={AdapterDateFns}>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <DatePicker
+              label="Check-in Date"
               value={formData.check_in}
-              placeholder="Enter CheckinDate"
-              onChange={handleChange}
-              required
-              fullWidth
+              onChange={handleCheckInDateChange}
+              renderInput={(params) => <TextField {...params} fullWidth />}
+              minDate={new Date()} // Disable past dates
+            />
+            <DatePicker
+              label="Check-Out Date"
+              value={formData.check_out}
+              onChange={handleCheckOutDateChange}
+              renderInput={(params) => <TextField {...params} fullWidth />}
+              minDate={new Date()} // Disable past dates
             />
           </Grid>
-          <Grid item xs={12}>
-            <TextField
-              label="Check Out Date"
-              type="date"
-              name="check_out"
-              value={formData.check_out}
-              placeholder="Enter CheckoutDate"
-              onChange={handleChange}
-              required
-              fullWidth
-            />
+        </Grid>
+      </MuiPickersUtilsProvider>
+    </LocalizationProvider>
           </Grid>
           <Grid item xs={12}>
             <Button type="submit" variant="contained" color="primary" size="large">

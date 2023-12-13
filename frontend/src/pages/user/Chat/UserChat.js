@@ -1,93 +1,312 @@
-import React, { useState, useEffect } from "react";
-import { w3cwebsocket as W3CWebSocket } from "websocket";
-import { Container, Typography, TextField, Button } from "@mui/material";
-function UserChat() {
-  const [socket, setSocket] = useState(null);
-  const [username, setUsername] = useState("");
-  const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([]);
+import React from 'react';
+import { makeStyles } from '@material-ui/core/styles';
+import {
+  Button,
+  Typography,
+  TextField,
+  Grid,
+  Paper,
+} from '@material-ui/core';
 
-  useEffect(() => {
-    // Get the username from local storage or prompt the user to enter it
-    const storedUsername = localStorage.getItem("username");
-    if (storedUsername) {
-      setUsername(storedUsername);
-    } else {
-      const input = prompt("Enter your username:");
-      if (input) {
-        setUsername(input);
-        localStorage.setItem("username", input);
-      }
-    }
+const useStyles = makeStyles((theme) => ({
+  chatContainer: {
+    maxWidth: '300px',
+    position: 'fixed',
+    right: '2rem',
+    bottom: '2rem',
+    padding: '1rem',
+    backgroundColor: '#fff',
+    border: '1px solid #ccc',
+    borderRadius: '8px',
+  },
+  chatWelcome: {
+    display: 'none',
+  },
+  chatRoom: {
+    display: 'none',
+  },
+  chatLog: {
+    marginBottom: '1rem',
+    padding: '1rem',
+    backgroundColor: '#eee',
+    borderRadius: '8px',
+    height: '300px',
+    overflowY: 'scroll',
+  },
+  gridContainer: {
+    marginBottom: '1rem',
+  },
+  chatBox: {
+    marginBottom: '1rem',
+    backgroundColor: '#eee',
+    borderRadius: '8px',
+    padding: '1rem',
+  },
+}));
 
-    // Connect to the WebSocket server with the username as a query parameter
-    const newSocket = new WebSocket(`ws://localhost:8000/ws/chat/`);
-    setSocket(newSocket);
-
-    newSocket.onopen = () => console.log("WebSocket connected");
-    newSocket.onclose = () => console.log("WebSocket disconnected");
-
-    // Clean up the WebSocket connection when the component unmounts
-    return () => {
-      newSocket.close();
-    };
-  }, [username]);
-
-  useEffect(() => {
-    if (socket) {
-      socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        setMessages((prevMessages) => [...prevMessages, data]);
-      };
-    }
-  }, [socket]);
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    if (message && socket) {
-      const data = {
-        message: message,
-        username: username,
-      };
-      socket.send(JSON.stringify(data));
-      setMessage("");
-    }
-  };
+const UserChat = () => {
+  const classes = useStyles();
 
   return (
-    <Container maxWidth="md">
-    <Typography variant="h4" gutterBottom>
-      Chat
-    </Typography>
-    <div>
-      {messages.map((message, index) => (
-        <div key={index}>
-          <Typography variant="subtitle1">
-            <strong>{message.username}:</strong> {message.message}
-          </Typography>
-          <Typography variant="caption" color="textSecondary">
-            {message.timestamp}
+    <div className={classes.chatContainer}>
+      <div id="chat_icon">
+        <Button id="chat_open" className="w-[50px] flex items-center">
+          {/* Your SVG Icon */}
+        </Button>
+      </div>
+
+      <div className={classes.chatWelcome}>
+        <TextField
+          id="chat_name"
+          label="Your name..."
+          variant="outlined"
+          fullWidth
+          margin="dense"
+        />
+        <Button id="chat_join" variant="contained" color="primary">
+          Join chat
+        </Button>
+      </div>
+
+      <div className={classes.chatRoom}>
+        <div id="chat_log" className={classes.chatLog}>
+          <Typography variant="body1">
+            Welcome to our chat! Please type your message and wait for an agent to join...
           </Typography>
         </div>
-      ))}
+
+        <TextField
+          id="chat_message_input"
+          variant="outlined"
+          fullWidth
+          margin="dense"
+          placeholder="Type your message..."
+          className={classes.chatBox}
+        />
+        <Button id="chat_message_submit" variant="contained" color="primary">
+          Send
+        </Button>
+      </div>
     </div>
-    <form onSubmit={handleSubmit}>
-      <TextField
-        variant="outlined"
-        fullWidth
-        placeholder="Type a message..."
-        value={message}
-        onChange={(event) => setMessage(event.target.value)}
-      />
-      <br/><br/>
-      <Button variant="contained" color="primary" type="submit">
-        Send
-      </Button>
-    </form>
-  </Container>
   );
-}
+};
+
 export default UserChat;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useEffect, useState } from 'react';
+// import instance from '../../../utils/Axios';
+
+// const UserChat = () => {
+//   const [messages, setMessages] = useState([]);
+//   const [chatRooms, setChatRooms] = useState([]);
+
+//   useEffect(() => {
+//     fetchMessages();
+//     fetchChatRooms();
+//   }, []);
+
+//   const fetchMessages = async () => {
+//     try {
+//       const response = await instance.get('/api/chat/messages/');
+//       setMessages(response.data);
+//     } catch (error) {
+//       console.error('Error fetching messages:', error);
+//     }
+//   };
+
+//   const fetchChatRooms = async () => {
+//     try {
+//       const response = await instance.get('/api/chat/chatrooms/');
+//       setChatRooms(response.data);
+//     } catch (error) {
+//       console.error('Error fetching chat rooms:', error);
+//     }
+//   };
+
+//   const createMessage = async () => {
+//     try {
+//       await instance.post('/api/chat/create_message/', {
+//         // Add necessary message data in the POST request body
+//       });
+//       // On successful creation, update messages
+//       fetchMessages();
+//     } catch (error) {
+//       console.error('Error creating message:', error);
+//     }
+//   };
+
+//   const createChatRoom = async () => {
+//     try {
+//       await instance.post('/api/chat/create_chatroom/', {
+//         // Add necessary chat room data in the POST request body
+//       });
+//       // On successful creation, update chat rooms
+//       fetchChatRooms();
+//     } catch (error) {
+//       console.error('Error creating chat room:', error);
+//     }
+//   };
+
+//   return (
+//     <div>
+//       <h2>Messages</h2>
+//       <ul>
+//         {messages.map((message) => (
+//           <li key={message.id}>{message.body}</li>
+//         ))}
+//       </ul>
+//       <button onClick={createMessage}>Send Message</button>
+
+//       <h2>Chat Rooms</h2>
+//       <ul>
+//         {chatRooms.map((room) => (
+//           <li key={room.id}>{room.client} - {room.uuid}</li>
+//         ))}
+//       </ul>
+//       <button onClick={createChatRoom}>Create Chat Room</button>
+//     </div>
+//   );
+// };
+
+// export default UserChat;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useState, useEffect } from "react";
+// import { w3cwebsocket as W3CWebSocket } from "websocket";
+// import { Container, Typography, TextField, Button } from "@mui/material";
+// function UserChat() {
+//   const [socket, setSocket] = useState(null);
+//   const [username, setUsername] = useState("");
+//   const [message, setMessage] = useState("");
+//   const [messages, setMessages] = useState([]);
+
+//   useEffect(() => {
+//     // Get the username from local storage or prompt the user to enter it
+//     const storedUsername = localStorage.getItem("username");
+//     if (storedUsername) {
+//       setUsername(storedUsername);
+//     } else {
+//       const input = prompt("Enter your username:");
+//       if (input) {
+//         setUsername(input);
+//         localStorage.setItem("username", input);
+//       }
+//     }
+
+//     // Connect to the WebSocket server with the username as a query parameter
+//     const newSocket = new WebSocket(`ws://localhost:8000/ws/chat/`);
+//     setSocket(newSocket);
+
+//     newSocket.onopen = () => console.log("WebSocket connected");
+//     newSocket.onclose = () => console.log("WebSocket disconnected");
+
+//     // Clean up the WebSocket connection when the component unmounts
+//     return () => {
+//       newSocket.close();
+//     };
+//   }, [username]);
+
+//   useEffect(() => {
+//     if (socket) {
+//       socket.onmessage = (event) => {
+//         const data = JSON.parse(event.data);
+//         setMessages((prevMessages) => [...prevMessages, data]);
+//       };
+//     }
+//   }, [socket]);
+
+//   const handleSubmit = (event) => {
+//     event.preventDefault();
+//     if (message && socket) {
+//       const data = {
+//         message: message,
+//         username: username,
+//       };
+//       socket.send(JSON.stringify(data));
+//       setMessage("");
+//     }
+//   };
+
+//   return (
+//     <Container maxWidth="md">
+//     <Typography variant="h4" gutterBottom>
+//       Chat
+//     </Typography>
+//     <div>
+//       {messages.map((message, index) => (
+//         <div key={index}>
+//           <Typography variant="subtitle1">
+//             <strong>{message.username}:</strong> {message.message}
+//           </Typography>
+//           <Typography variant="caption" color="textSecondary">
+//             {message.timestamp}
+//           </Typography>
+//         </div>
+//       ))}
+//     </div>
+//     <form onSubmit={handleSubmit}>
+//       <TextField
+//         variant="outlined"
+//         fullWidth
+//         placeholder="Type a message..."
+//         value={message}
+//         onChange={(event) => setMessage(event.target.value)}
+//       />
+//       <br/><br/>
+//       <Button variant="contained" color="primary" type="submit">
+//         Send
+//       </Button>
+//     </form>
+//   </Container>
+//   );
+// }
+// export default UserChat;
 
 
 
