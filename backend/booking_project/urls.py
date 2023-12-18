@@ -25,6 +25,8 @@ urlpatterns = [
     path('api/', include('accounts.urls')),
     path('api/booking/', include('booking_app.urls')),
     path('api/chat/',include('chat.urls')),
+
+    
     # path('ws/', include(routing.websocket_urlpatterns)),
 
 

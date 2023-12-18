@@ -33,10 +33,12 @@ import Reviews from '../pages/user/Review/Reviews'
 import ReviewList from '../pages/user/Review/ReviewList'
 import ResetPasswordWrapper from '../pages/user/Auth/ResetPassword'
 import ForgotPassword from '../pages/user/Auth/ForgotPassword'
-import UserChat from '../pages/user/Chat/UserChat'
-import AdminChat from '../pages/admin/AdminChat'
+import ChatPage from '../pages/Chat/ChatPage'
+import AdminChat from '../pages/Chat/AdminChat'
+
 import BookingReport from '../pages/admin/Booking/BookingReport'
 import ChangePassword from '../pages/user/Auth/ChangePassword'
+import WalletDetails from '../pages/user/Wallet/WalletDetails'
 
 
 
@@ -74,7 +76,8 @@ const Routers = () => {
      
         <Route path='/reset-password-confirm/:uid/:token' element={< ResetPasswordWrapper/>} />
         
-        <Route path='/messages' element={<UserChat/>} />
+        <Route path='/chat-messages' element={<ChatPage/>} ></Route>
+ 
     
 
 
@@ -104,8 +107,11 @@ const Routers = () => {
         <Route path='/my-bookings/:user_id' element={<MyBookings/>} />
         <Route path='/booking-report' element={<BookingReport/>} />
 
-        <Route path='/reviews' element={<Reviews/>} />
+        <Route path='/add-review/:roomId' element={<Reviews/>} />
         <Route path='/reviews' element={<ReviewList/>} />
+        <Route path='/wallet/:userId' element={<WalletDetails/>} />
+
+        
         <Route path='/roombooking-page/cancel-booking/:bookingId' element={<CancelMyBooking/>} />
         
     </Route>
@@ -133,8 +139,9 @@ const Routers = () => {
         <Route path='/admin/room-list' element={<RoomList/>} />
         <Route path='/admin/room-feature' element={<RoomFeatureList/>} />
         <Route path='/admin/booking-list' element= {<BookingList/>} />
-        <Route path='/admin/messages' element= {<AdminChat/>} />
+        
         <Route path='/admin/booking-report' element= {<BookingReport/>} />
+        <Route path='/adminchat-messages' element={<AdminChat/>} />
 
 
       

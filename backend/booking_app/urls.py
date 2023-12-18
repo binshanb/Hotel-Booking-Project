@@ -46,9 +46,9 @@ urlpatterns = [
     path('create-razorpay-order/', RazorpayOrderView.as_view(), name='create_razorpay_order'),
 
     # path('add-reviews/', ReviewListCreateAPIView.as_view(), name='review-list-create'),
-    path('reviews/', ReviewListCreateAPIView.as_view(), name='review-list-create'),
-    # path('reviews/', ReviewListAPIView.as_view(), name='review-list'),
-
+    path('add-review/<int:room_id>', ReviewListCreateAPIView.as_view(), name='review-list-create'),
+    path('reviews/', ReviewListAPIView.as_view(), name='review-list'),
+    path('wallet/<int:user_id>/', WalletDetailView.as_view(), name='wallet-detail'),
     path('admin/booking-report/<int:year>/<int:month>/', BookingReportView.as_view(), name='booking-report'),
 
 

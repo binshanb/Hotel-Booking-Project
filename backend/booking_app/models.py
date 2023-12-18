@@ -149,3 +149,10 @@ class Review(models.Model):
 
     class Meta:
         unique_together = ('room', 'customer')
+
+class Wallet(models.Model):
+    user = models.OneToOneField(AccountUser, on_delete=models.CASCADE)
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    def __str__(self):
+        return self.user.email

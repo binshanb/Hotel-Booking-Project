@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import {activateRoomInfo} from '../../../redux/slices/roomslices/roomSlice'
 import { makeStyles } from '@material-ui/core/styles';
-import Reviews from '../Review/Reviews';
+import ReviewList from '../Review/ReviewList';
 import {
   Card,
   CardContent,
@@ -65,7 +65,7 @@ function RoomDetail({rooms}) {
       });
   }, [id]);
   const handleReview = ()=>{
-   navigate('/reviews');
+   navigate(`/add-review/${id}/`);
   }
   const handleRooms=()=>{
     navigate('/roomlistuser')
@@ -172,6 +172,8 @@ function RoomDetail({rooms}) {
         <Button onClick={handleRooms} variant="outlined" color="primary" size="large">
           Back to Room List
          </Button>
+
+         <ReviewList/>
       </Box>
     </Box> 
   );

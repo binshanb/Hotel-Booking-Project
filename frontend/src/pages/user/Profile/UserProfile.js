@@ -96,6 +96,11 @@ const {first_name} = userData
     navigate (`/user/update-profile/${userIds}`)
     setShowForm((prevShowForm) => !prevShowForm);
   }; 
+  const  handleWallet = () => {
+    navigate (`/wallet/${userIds}`)
+    setShowForm((prevShowForm) => !prevShowForm);
+  }; 
+
 
   return (
     <div className={classes.root}>
@@ -142,6 +147,15 @@ const {first_name} = userData
               onClick={handleResetPasswordClick}
             >
               Reset Password
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              className={classes.button}
+              // startIcon={<EditIcon />}
+              onClick={handleWallet}
+            >
+              Wallet
             </Button>
             {/* Other buttons */}
           </div>

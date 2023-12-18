@@ -1,4 +1,4 @@
-from .models import Category,Room,RoomFeature,RoomBooking,CheckIn,Payment,Review,RoomImage
+from .models import Category,Room,RoomFeature,RoomBooking,CheckIn,Payment,Review,RoomImage,Wallet
 from accounts.models import AccountUser
 from rest_framework import serializers
 
@@ -110,3 +110,8 @@ class DashboardSerializer(serializers.Serializer):
     pieChart = serializers.ListField(child=serializers.DictField())
     barGraph = serializers.ListField(child=serializers.DictField())
     statistics = serializers.DictField()    
+
+class WalletSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Wallet
+        fields = '__all__'

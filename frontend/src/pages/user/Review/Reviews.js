@@ -41,12 +41,14 @@ const Reviews = () => {
   const user=useSelector((state) => state.auth.userInfo);
   const [decodeInfo,setDecodeInfo]=useState({});
   const rooms = useSelector((state)=> state.room.roomInfo);
+  const roomId = rooms.id 
   console.log(rooms,"roomssssssssssss");
+  const [selectedRoomId, setSelectedRoomId] = useState(null);
   const [formData, setFormData] = useState({
     rating: '',
     comment: '',
   });
-console.log(formData,"roommmmmmmmm");
+
 useEffect(() => {
   if (user) {
     // Decode the token and set the user info state
@@ -58,10 +60,10 @@ useEffect(() => {
   // Fetch room info and user info when component mounts
   dispatch(activateRoomInfo(rooms));
   // dispatch(userInfos());
-}}, [dispatch,rooms.id,]);
+}}, [dispatch,roomId,]);
   useEffect(() => {
     // Fetch existing reviews from the backend
-    instance.get(`${baseUrl}/api/booking/reviews/`) // Replace with your backend endpoint
+    instance.get(`${baseUrl}/api/booking/reviews/${roomId}`) // Replace with your backend endpoint
       .then(response => {
         setReviews(response.data);
       })
@@ -76,51 +78,99 @@ useEffect(() => {
       [e.target.name]: e.target.value,
     });
   };
+  const handleRoomSelect = (roomId) => {
+    setSelectedRoomId(roomId);
+    try {
+      // Fetch reviews for the selected room
+      instance.get(`${baseUrl}/api/booking/reviews/${roomId}/`) // Adjust the endpoint to fetch reviews based on room ID
+        .then((response) => {
+          setReviews(response.data);
+        })
+        .catch((error) => {
+          console.error('Error fetching room reviews:', error);
+        });
+    } catch (error) {
+      // Handle any synchronous errors here
+      console.error('Synchronous error:', error);
+    }
+  };
+  
+    
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const postData={
-      customer:decodeInfo.user_id,
-      room:rooms.id,
-      rating:formData.rating,
-      comment:formData.comment
-    }
-    console.log(postData,"posttttttttttttttttt");
-    try{
-    instance.post(`${baseUrl}/api/booking/reviews/`, postData) // Replace with your backend endpoint
-      .then(response => {
-        setReviews(postData);
-        console.log('Review added:', response.data);
-        alert("Review added successfully")
-        // Update reviews state to display the newly added review
-        setReviews([...reviews, response.data]);
-      })
-      setFormData({
-        rating: '',
-        comment: '',
-      });
-    }catch(error) {
-      if (error.response) {
-        // The request was made, but the server responded with a status code that falls out of the range of 2xx
-        console.error('Error response from server:', error.response.data);
-        console.error('Status code:', error.response.status);
-        console.error('Headers:', error.response.headers);
-      } else if (error.request) {
-        // The request was made but no response was received
-        console.error('Request made but no response received:', error.request);
-      } else {
-        // Something happened in setting up the request that triggered an error
-        console.error('Error setting up the request:', error.message);
-        alert("Error")
-      
+    const postData = {
+      customer: decodeInfo.user_id,
+      room: roomId, // Ensure roomId is defined or passed correctly to this function
+      rating: formData.rating,
+      comment: formData.comment
+    };
+  
+    console.log(postData, "posttttttttttttttttt");
+  
+    try {
+      instance.post(`${baseUrl}/api/booking/add-review/${roomId}/`, postData)
+        .then(response => {
+          console.log('Review added:', response.data);
+          alert("Review added successfully");
+  
+          // Update reviews state to include the newly added review
+          setReviews([...reviews, response.data]);
+  
+          // Reset form data after successful submission
+          setFormData({
+            rating: '',
+            comment: '',
+          });
+        })
+        .catch(error => {
+          if (error.response) {
+            // Handle error response from the server
+            console.error('Error response from server:', error.response.data);
+            console.error('Status code:', error.response.status);
+            console.error('Headers:', error.response.headers);
+            // Handle the error (show an error message, etc.)
+          } else if (error.request) {
+            // Handle request made but no response received
+            console.error('Request made but no response received:', error.request);
+            // Handle the error (show an error message, etc.)
+          } else {
+            // Handle other errors
+            console.error('Error setting up the request:', error.message);
+            // Handle the error (show an error message, etc.)
+          }
+        });
+    } catch (error) {
+      // Handle any synchronous errors here
+      console.error('Synchronous error:', error);
+      // Handle the error (show an error message, etc.)
     }
   };
-    };
+  
 
   return (
     <div className={classes.root}>
     <Grid container spacing={2}>
       <Grid item xs={12} sm={6}>
+      <FormControl className={classes.formControl}>
+            <InputLabel htmlFor="room-select">Select Room:</InputLabel>
+            <Select
+              value={selectedRoomId || ''}
+              onChange={(e) => handleRoomSelect(e.target.value)}
+              inputProps={{
+                name: 'room-select',
+                id: 'room-select',
+              }}
+            >
+              {/* Map through available rooms */}
+              {reviews.map((review) => (
+                <MenuItem key={review.id} value={review.roomId}>
+                  {review.title}
+                  {/* {room.client} - {room.uuid} */}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         <Paper className={classes.paper}>
           <Typography variant="h6">Review Form</Typography>
           <form onSubmit={handleSubmit}>
@@ -163,29 +213,40 @@ useEffect(() => {
       <Grid container spacing={2}>
         <Grid item xs={12} sm={6}>
           <Paper className={classes.paper}>
+          {selectedRoomId && (
+              <React.Fragment>
             <Typography variant="h6">Existing Reviews</Typography>
             <List>
               {reviews.map((review) => (
-                <React.Fragment key={review.id}>
-                  <ListItem alignItems="flex-start">
-                    <ListItemText
-                      // primary={`Room: ${review.room.title}`}
-                      secondary={
-                        <React.Fragment>
-                          <Typography component="span" variant="body2" color="textPrimary">
-                            Rating: {review.rating}
-                          </Typography>
-                          <Typography variant="body2" color="textSecondary">
-                            {review.comment}
-                          </Typography>
-                        </React.Fragment>
-                      }
-                    />
-                  </ListItem>
-                  <Divider variant="inset" component="li" />
-                </React.Fragment>
-                        ))}
-                        </List>
+                   <React.Fragment key={review.id}>
+                   <ListItem alignItems="flex-start">
+                     <ListItemText
+                       secondary={
+                         <React.Fragment>
+                            {/* Display user email */}
+                            <Typography variant="body2" color="textSecondary">
+                                User Email: {review.user_email}
+                           <Typography component="span" variant="body2" color="textPrimary">
+                             Rating: {review.rating}
+                           </Typography>
+                           <Typography variant="body2" color="textSecondary">
+                             {review.comment}
+                           </Typography>
+                           
+                              </Typography>
+                         </React.Fragment>
+                       }
+                     />
+                   </ListItem>
+                   <Divider variant="inset" component="li" />
+                 </React.Fragment>
+               ))}
+             </List>
+           </React.Fragment>
+         )}
+         {!selectedRoomId && (
+           <Typography variant="body2">Select a room to view reviews.</Typography>
+         )}
                       </Paper>
                     </Grid>
                     </Grid>
@@ -195,6 +256,19 @@ useEffect(() => {
 };
 
 export default Reviews;
+
+
+
+
+
+
+
+
+
+
+
+
+
 //     <div>
 //       <h2>Review Form</h2>
 //       <form onSubmit={handleSubmit}>

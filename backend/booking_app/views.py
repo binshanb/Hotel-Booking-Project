@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
-from .models import Category,Room,RoomFeature,RoomBooking,CheckIn,Payment,Review,RoomImage
+from .models import Category,Room,RoomFeature,RoomBooking,CheckIn,Payment,Review,RoomImage,Wallet
 from .serializer import CategorySerializer,RoomSerializer,RoomFeatureSerializer,RoomBookingSerializer,PaymentSerializer,RoomAvailabilityCheckSerializer,ReviewSerializer
-from .serializer import DashboardSerializer,RoomImageSerializer,RoomCheckoutSerializer,BookingStatusSerializer
+from .serializer import DashboardSerializer,RoomImageSerializer,RoomCheckoutSerializer,BookingStatusSerializer,WalletSerializer
 from .permissions import IsAdminOrReadOnly
 from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView,RetrieveUpdateAPIView,ListCreateAPIView
 from rest_framework.views import APIView
@@ -561,3 +561,7 @@ class BookingReportView(generics.ListAPIView):
         end_date = datetime(next_year, next_month, 1)
 
         return RoomBooking.objects.filter(booking_date__gte=start_date, booking_date__lt=end_date).values('booking_date').annotate(count=Count('id')).order_by('booking_date')
+    
+class WalletDetailView(generics.RetrieveAPIView):
+    queryset = Wallet.objects.all()
+    serializer_class = WalletSerializer

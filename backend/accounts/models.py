@@ -41,7 +41,7 @@ class AccountUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True)
     phone_number = PhoneNumberField(blank=True, null=True)
     image = models.ImageField(upload_to="media/images", null=True,blank=True, default="profile-img.jpg")
-    role = models.CharField(max_length=20, choices=Role.choices, default=Role.GUEST)
+    role = models.CharField(max_length=20, choices=Role.choices, default='')
 
      # Additional fields
     address = models.CharField(max_length=255, null=True, blank=True)
@@ -74,7 +74,10 @@ class AccountUser(AbstractBaseUser, PermissionsMixin):
     def has_module_perms(self, add_label):
         return True
 
-
+class OTPVerification(models.Model):
+    phone_number = models.IntegerField()
+    otp = models.CharField(max_length=4)
+    is_verfied = models.BooleanField(default=False)
 
 #<---------------------------Basics Credentials-----End------------------>
 

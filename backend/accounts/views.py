@@ -30,6 +30,8 @@ from django.utils.encoding import force_bytes, force_str
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from accounts.renderers import UserRenderer
+from .models import OTPVerification
+from twilio.rest import Client
 
 
 

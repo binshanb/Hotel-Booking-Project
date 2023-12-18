@@ -1,97 +1,1819 @@
-import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import {
-  Button,
-  Typography,
-  TextField,
-  Grid,
-  Paper,
-} from '@material-ui/core';
+import React, { useState, useEffect, useRef } from 'react';
+import instance from '../../utils/Axios';
+import { useSelector } from 'react-redux';
+import jwtDecode from 'jwt-decode';
+import { baseUrl } from '../../utils/constants';
+import { w3cwebsocket } from 'websocket';
+function ChatPage() {
+    const [chats, setChats] = useState([]);
+    console.log(chats,"chat");
+    const [messageInput, setMessageInput] = useState('');
+    console.log(messageInput,"message");
+    const chatContainerRef = useRef(null);
+    const userInfos = useSelector((state) => state.auth.userInfo);
+    const [decodedUserInfo, setDecodedUserInfo] = useState({});
+    console.log(decodedUserInfo,"userInfo");
+    const adminInfos = useSelector((state) => state.adminAuth.adminInfo);
+    const [decodedAdminInfo, setDecodedAdminInfo] = useState({});
+    console.log(decodedAdminInfo,"adminInfo");
+    const [socket, setSocket] = useState(null);
 
-const useStyles = makeStyles((theme) => ({
-  chatContainer: {
-    maxWidth: '300px',
-    position: 'fixed',
-    right: '2rem',
-    bottom: '2rem',
-    padding: '1rem',
-    backgroundColor: '#fff',
-    border: '1px solid #ccc',
-    borderRadius: '8px',
-  },
-  chatWelcome: {
-    display: 'none',
-  },
-  chatRoom: {
-    display: 'none',
-  },
-  chatLog: {
-    marginBottom: '1rem',
-    padding: '1rem',
-    backgroundColor: '#eee',
-    borderRadius: '8px',
-    height: '300px',
-    overflowY: 'scroll',
-  },
-  gridContainer: {
-    marginBottom: '1rem',
-  },
-  chatBox: {
-    marginBottom: '1rem',
-    backgroundColor: '#eee',
-    borderRadius: '8px',
-    padding: '1rem',
-  },
-}));
+    useEffect(() => {
+        if (userInfos) {
+          // Decode the token and set the user info state
+          const decodedInfo = jwtDecode(userInfos.access); // Assuming 'access' contains user details
+          setDecodedUserInfo(decodedInfo);
+        }},[userInfos]);
+    useEffect(() => {
+        if (adminInfos) {
+            // Decode the token and set the user info state
+            const decodedInfoAdmin = jwtDecode(adminInfos.access); // Assuming 'access' contains user details
+            setDecodedAdminInfo(decodedInfoAdmin);
+        }},[adminInfos]);
 
-const UserChat = () => {
-  const classes = useStyles();
+    useEffect(() => {
+        fetchChats();
+        setupWebSocket();
+    }, []);
 
-  return (
-    <div className={classes.chatContainer}>
-      <div id="chat_icon">
-        <Button id="chat_open" className="w-[50px] flex items-center">
-          {/* Your SVG Icon */}
-        </Button>
-      </div>
+    useEffect(() => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+    }, [chats]);
 
-      <div className={classes.chatWelcome}>
-        <TextField
-          id="chat_name"
-          label="Your name..."
-          variant="outlined"
-          fullWidth
-          margin="dense"
-        />
-        <Button id="chat_join" variant="contained" color="primary">
-          Join chat
-        </Button>
-      </div>
+    const setupWebSocket = () => {
 
-      <div className={classes.chatRoom}>
-        <div id="chat_log" className={classes.chatLog}>
-          <Typography variant="body1">
-            Welcome to our chat! Please type your message and wait for an agent to join...
-          </Typography>
-        </div>
+    
+        const newSocket = new w3cwebsocket('ws://127.0.0.1:8000/ws/chat/chat-messages/'); // Replace with your WebSocket URL
+    
+        newSocket.onopen = function(event) {
+          console.log('WebSocket connection established.');
+          // Handle any initialization or sending of data here if needed
+        };
+    
+        newSocket.onmessage = function(event) {
+          const data = JSON.parse(event.data);
+          console.log('Received a message:', data);
+    
+          // Handle the received message data in your React component
+          // For example, update messages state
+          setChats(prevChats => [...prevChats, data]);
+        };
+    
+        newSocket.onclose = function(event) {
+          console.log('WebSocket connection closed:', event);
+          // Handle WebSocket closure
+        };
+    
+        newSocket.onerror = function(error) {
+          console.error('WebSocket error:', error);
+          // Handle WebSocket errors
+        };
+    
+        setSocket(newSocket);
+    
+        // Clean up the WebSocket connection on unmount
+        return () => {
+          if (newSocket) {
+            newSocket.close();
+          }
+        };
+      };
 
-        <TextField
-          id="chat_message_input"
-          variant="outlined"
-          fullWidth
-          margin="dense"
-          placeholder="Type your message..."
-          className={classes.chatBox}
-        />
-        <Button id="chat_message_submit" variant="contained" color="primary">
-          Send
-        </Button>
+    const fetchChats = () => {
+        instance.get(`${baseUrl}/api/chat/chat-messages/`) 
+            .then(response => {
+                setChats(response.data);
+            })
+            .catch(error => {
+                console.error('Error fetching chats:', error);
+            });
+    };
+
+    const sendMessage = () => {
+        if (messageInput.trim() !== '') {
+            const senderId = decodedUserInfo.user_id; // Assuming user_id is part of decodedUserInfo
+            const receiverId = decodedAdminInfo.user_id; // Assuming admin_id is part of decodedAdminInfo
+            
+            const messageData = {
+                sender_id: senderId,
+                receiver_id: receiverId,
+                message: messageInput
+            };
+        
+    
+            instance.post(`${baseUrl}/api/chat/chat-messages/`,messageData) 
+              .then(response => {
+                // After successfully sending the message, fetch updated chats
+                  setChats(prevChats => [...prevChats, messageData]);
+                  setMessageInput(''); // Clear the message input field
+              })
+              .catch(error => {
+                console.error('Error sending message:', error);
+              });
+        }
+    };
+    
+
+    const isUserMessage = (msg) => {
+        const userId = decodedUserInfo.user_id;
+        const adminId = decodedAdminInfo.user_id;
+    
+        // Check if the sender_id matches the current user ID or the admin ID
+        return msg.sender_id === userId || msg.sender_id === adminId;
+    };
+    
+
+    return (
+        <div className="flex flex-col h-screen">
+            <div className="flex-none bg-gray-200 p-4">
+                <h1 className="text-2xl font-semibold">Chat Component</h1>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4" ref={chatContainerRef}>
+            {chats.map((msg, index) => (
+            <div key={index} className={msg.sender > 1 ? 'flex justify-end' : 'flex justify-start'}>
+            <div className={`p-2 max-w-xs rounded-lg ${isUserMessage(msg) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'}`}>
+            <p className="m-0">{msg.message}</p>
+            <p>{msg.sender > 1 ?  decodedUserInfo.email : 'Admin' }</p>
+            <p>{new Date(msg.timestamp).toLocaleString()}</p>
       </div>
     </div>
-  );
-};
+  ))}
+</div>
 
-export default UserChat;
+            <div className="flex-none bg-gray-200 p-4">
+                <div className="flex items-center">
+                  <input
+                       type="text"
+                       value={messageInput}
+                       onChange={(e) => setMessageInput(e.target.value)} // Update messageInput state on change
+                       className="flex-1 border p-2 rounded-lg mr-2"
+                       placeholder="Type your message..."
+                       />
+
+                    <button onClick={sendMessage} className="px-4 py-2 bg-blue-500 text-white rounded-lg">Send</button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default ChatPage;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useState, useEffect } from 'react';
+// import instance from "../../utils/Axios"
+// import {useParams } from 'react-router-dom';
+// import { baseUrl } from '../../utils/constants';
+
+// import { Container, Paper, TextField, Button, Grid } from '@material-ui/core';
+// import SendOutlinedIcon from '@material-ui/icons/SendOutlined';
+// import { useSelector } from 'react-redux';
+// const UserChat = () => {
+//   const userId = useSelector
+//   const { chatId } = useParams();
+//   const [messages, setMessages] = useState([]);
+//   const [messageInput, setMessageInput] = useState('');
+//   // const [sockets, setSockets] = useState(null);
+
+//   // useEffect(() => {
+//   //   // Create a WebSocket connection when the component mounts
+//   //   const newSocket = new WebSocket(`ws://localhost:8000/ws/chat/${chatId}/`);
+//   //   setSockets(newSocket);
+
+//   //   return () => {
+//   //     // Close the WebSocket connection when the component unmounts
+//   //     newSocket.close();
+//   //   };
+//   // }, [chatId]);
+
+//   // useEffect(() => {
+//   //   if (sockets) {
+//   //     // Listen for 'message' event from the WebSocket server
+//   //     sockets.on('message', (newMessage) => {
+//   //       setMessages([...messages, newMessage]);
+//   //     });
+//   //   }
+//   // }, [sockets, messages]);
+
+//   useEffect(() => {
+//     const fetchMessages = async () => {
+//       try {
+//         const response = await instance.get(`${baseUrl}/api/chat/messages/${chatId}`);
+//         setMessages(response.data);
+//       } catch (error) {
+//         console.error('Error fetching messages:', error);
+//       }
+//     };
+
+//     if (chatId) {
+//       fetchMessages();
+//     }
+//   }, [chatId]);
+
+//   const handleSendMessage = async (room_id,user_id) => {
+//     try {
+//       const response = await instance.post(`${baseUrl}/api/chat/send-message/`, {
+//         content: messageInput,
+//       });
+    
+//       setMessages([...messages, response.data]);
+//       setMessageInput('')
+    
+      
+//       // Emit 'new message' event to WebSocket server
+//     //   sockets.emit('new message', response.data);
+//     } catch (error) {
+//       console.error('Error sending message:', error);
+//     }
+    
+//   }
+//   return (
+//     <Container maxWidth="sm">
+//     <Paper elevation={3} style={{ height: '70vh', padding: '20px', marginTop: '30px' }}>
+//       {/* Chat messages area */}
+//       <div style={{ overflowY: 'auto', maxHeight: 'calc(70vh - 90px)' }}>
+//         {messages.map((message, index) => (
+//           <div key={index} style={{ marginBottom: '10px' }}>
+//             {message.sender}: {message.content}
+//           </div>
+//         ))}
+//       </div>
+//       {/* Message input and send button */}
+//       <Grid container spacing={2} alignItems="center" style={{ marginTop: '20px' }}>
+//         <Grid item xs={9}>
+//           <TextField
+//             fullWidth
+//             variant="outlined"
+//             placeholder="Type a message..."
+//             value={messageInput}
+//             onChange={(e) => setMessageInput(e.target.value)}
+//           />
+//         </Grid>
+//         <Grid item xs={3}>
+//           <Button
+//             variant="contained"
+//             color="primary"
+//             endIcon={<SendOutlinedIcon />}
+//             onClick={handleSendMessage}
+//             disabled={!messageInput.trim()}
+//             fullWidth
+//           >
+//             Send
+//           </Button>
+//         </Grid>
+//       </Grid>
+//     </Paper>
+//   </Container>
+//   );
+// };
+
+// export default UserChat;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useEffect, useState } from "react";
+// import { useSelector } from "react-redux";
+// import instance from "../../utils/Axios"
+// import { toast } from "react-toastify";
+// import { useParams } from "react-router-dom";
+// import WebSocket from 'ws';
+// // import jwt from 'jsonwebtoken';
+// import { useJwt } from "react-jwt";
+
+// // import * as jwt_decode from "jwt-decode";
+
+// const ENDPOINT = "http://localhost:8000";
+
+// var socket, selectedChatCompare;
+// const UserChat = () => {
+//   const { userInfo } = useSelector((state) => state.auth);
+//   const [rooms, setRooms] = useState([]);
+//   const [chatId, setChatId] = useState("");
+//   const [chats, setChats] = useState([]);
+//   const [hotel, setHotel] = useState("");
+//   const [content, setContent] = useState("");
+//   const [messageSent, setMessageSent] = useState(false);
+//   const [socketConnected, setSocketConnected] = useState(false);
+
+ 
+
+//   const { chatid } = useParams();
+//   const userToken = userInfo.userToken;
+//   console.log(userToken,'userToken');
+//   const { decodedToken } = useJwt(userToken);
+//   console.log(decodedToken,'decodedToken');
+
+//   useEffect(() => {
+//     const setupSocket = () => {
+//       if(userToken) {
+//         console.log(decodedToken, 'this is decoded token in useEffect');
+//         const socket = new WebSocket('ws://localhost:8000');
+//         socket.emit("setup", decodedToken);
+//         socket.on("connection", () => setSocketConnected(true));
+//       } else {
+//         console.log('no token found');
+//       }
+//     };
+
+//     setupSocket();
+//   }, [userToken, decodedToken]);
+
+//   const sendHandler = async () => {
+//     if (content === "") {
+//       toast.error("Message cannot be empty");
+//       return;
+//     }
+
+//     try {
+//       let res = await instance.post(`api/chat/sendchat/${chatId}/User`, {
+//         content,
+//       });
+//       if (res) {
+//         setContent("");
+//         setMessageSent(true);
+//         socket.emit('new message',res.data)
+//       }
+//     } catch (error) {
+//       console.log(error.message);
+//     }
+//   };
+
+//   useEffect(() => {
+//     let fetchMessages = async () => {
+//       let res = await instance.get(`api/chat/get-room-messages/${chatId}`);
+//       if (res) {
+//         setChats(res.data);
+//         setMessageSent(false);
+//         socket.emit('join chat',chatId)
+//       }
+//     };
+//     if (chatId) {
+//       fetchMessages();
+//     }
+//     selectedChatCompare = chats;
+//   }, [chatId, messageSent]);
+
+
+//   useEffect(()=>{
+//     socket.on('message received',(newMessageReceived)=>{
+//       if(!selectedChatCompare || chatId!==newMessageReceived.room._id){
+// //give notification
+//       }else{
+//         setChats([...chats,newMessageReceived])
+//       }
+//     })
+//   })
+
+//   useEffect(() => {
+//     if (chatid !== "allchats") {
+//       setChatId(chatid);
+//     }
+//   }, [chatid]);
+
+
+
+
+//   // console.log("userTokennnn", userToken);
+//   // const { decodedToken } = useJwt(userToken);
+//   // console.log(decodedToken);
+
+  
+
+//   useEffect(() => {
+//     if (userInfo) {
+//       let fetchRooms = async () => {
+//         let res = await instance.get("/getrooms");
+//         setRooms(res.data);
+//       };
+//       fetchRooms();
+//     }
+//   }, [userInfo]);
+
+//   return (
+//     <div className="container mx-auto">
+//       <div className="min-w-full border rounded lg:grid lg:grid-cols-3">
+//         <div className="border-r border-gray-300 lg:col-span-1">
+//           <div className="mx-3 my-3">
+//             <div className="relative text-gray-600">
+//               <span className="absolute inset-y-0 left-0 flex items-center pl-2">
+//                 <svg
+//                   fill="none"
+//                   stroke="currentColor"
+//                   strokeLinecap="round"
+//                   strokeLinejoin="round"
+//                   strokeWidth="2"
+//                   viewBox="0 0 24 24"
+//                   className="w-6 h-6 text-gray-300"
+//                 >
+//                   <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+//                 </svg>
+//               </span>
+//               <input
+//                 type="search"
+//                 className="block w-full py-2 pl-10 bg-gray-100 rounded outline-none"
+//                 name="search"
+//                 placeholder="Search"
+//                 required
+//               />
+//             </div>
+//           </div>
+
+//           <ul className="overflow-auto h-[32rem]">
+//             <h2 className="my-2 mb-2 ml-2 text-lg text-gray-600">Chats</h2>
+//             <li>
+//               {rooms.length > 0 ? (
+//                 rooms.map((chat, index) => (
+//                   <a
+//                     key={index}
+//                     className="flex items-center px-3 py-2 text-sm transition duration-150 ease-in-out border-b border-gray-300 cursor-pointer hover:bg-gray-100 focus:outline-none"
+//                     style={{ textDecoration: "none" }}
+//                   >
+//                     <img
+//                       className="object-cover w-10 h-10 rounded-full"
+//                       src="https://cdn.pixabay.com/photo/2018/09/12/12/14/man-3672010__340.jpg"
+//                       alt="username"
+//                     />
+//                     <div
+//                       className="w-full pb-2"
+//                       onClick={() => {
+//                         setChatId(chat._id);
+//                         setHotel(chat.hotel.name);
+//                       }}
+//                     >
+//                       <div className="flex justify-between">
+//                         <span className="block ml-2 font-semibold text-gray-600">
+//                           {chat.hotel.name}
+//                         </span>
+//                         <span className="block ml-2 text-sm text-gray-600">
+//                           25 minutes
+//                         </span>
+//                       </div>
+//                       {/* <span className="block ml-2 text-sm text-gray-600">bye</span> */}
+//                     </div>
+//                   </a>
+//                 ))
+//               ) : (
+//                 <a className="flex items-center px-3 py-2 text-sm transition duration-150 ease-in-out border-b border-gray-300 cursor-pointer hover:bg-gray-100 focus:outline-none">
+//                   <div className="w-full pb-2">
+//                     <div className="flex justify-between">
+//                       <span className="block ml-2 font-semibold text-gray-600 no-underline">
+//                         No Chats found
+//                       </span>
+//                     </div>
+//                   </div>
+//                 </a>
+//               )}
+//             </li>
+//           </ul>
+//         </div>
+//         <div className="hidden lg:col-span-2 lg:block sm:block xs:block">
+//           {chatId ? (
+//             <div className="w-full">
+//               <div>
+//                 <div className="relative flex items-center p-3 border-b border-gray-300">
+//                   <img
+//                     className="object-cover w-10 h-10 rounded-full"
+//                     src="https://cdn.pixabay.com/photo/2018/01/15/07/51/woman-3083383__340.jpg"
+//                     alt="username"
+//                   />
+//                   <span className="block ml-2 font-bold text-gray-600">
+//                     Hotel
+//                   </span>
+//                   <span className="absolute w-3 h-3 bg-green-600 rounded-full left-10 top-3"></span>
+//                 </div>
+
+//                 <div className="relative w-full p-6 overflow-y-auto h-[40rem]">
+//                   <ul className="space-y-2">
+//                     {chats && chats.length > 0 ? (
+//                       chats.map((chat, index) =>
+//                         chat.senderType === "User" ? (
+//                           <li key={index} className="flex justify-start">
+//                             <div className="relative max-w-xl px-4 py-2 text-gray-700 rounded shadow">
+//                               <span className="block">{chat.content}</span>
+//                             </div>
+//                           </li>
+//                         ) : (
+//                           <li key={index} className="flex justify-end">
+//                             <div className="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-100 rounded shadow">
+//                               <span className="block">{chat.content}</span>
+//                             </div>
+//                           </li>
+//                         )
+//                       )
+//                     ) : (
+//                       <div>
+//                         <div className="relative h-20 flex items-center p-3 border-b border-gray-300">
+//                           <span className="absolute w-3 h- bg-green-600 rounded-full left-10 top-3"></span>
+//                         </div>
+//                         <div className="relative w-full p-6 overflow-y-auto h-[40rem]">
+//                           <ul className="space-y-2">
+//                             <li className="flex justify-center">
+//                               <div className="relative max-w-xl px-4 py-2 text-gray-700 rounded shadow">
+//                                 <span className="block">No Chats </span>
+//                               </div>
+//                             </li>
+//                           </ul>
+//                         </div>
+//                       </div>
+//                     )}
+
+//                     <div className="flex items-center justify-between w-full p-3 border-t border-gray-300">
+//                       <button>
+//                         <svg
+//                           xmlns="http://www.w3.org/2000/svg"
+//                           className="w-6 h-6 text-gray-500"
+//                           fill="none"
+//                           viewBox="0 0 24 24"
+//                           stroke="currentColor"
+//                         >
+//                           <path
+//                             strokeLinecap="round"
+//                             strokeLinejoin="round"
+//                             strokeWidth="2"
+//                             d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+//                           />
+//                         </svg>
+//                       </button>
+//                       <button>
+//                         <svg
+//                           xmlns="http://www.w3.org/2000/svg"
+//                           className="w-5 h-5 text-gray-500"
+//                           fill="none"
+//                           viewBox="0 0 24 24"
+//                           stroke="currentColor"
+//                         >
+//                           <path
+//                             strokeLinecap="round"
+//                             strokeLinejoin="round"
+//                             strokeWidth="2"
+//                             d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+//                           />
+//                         </svg>
+//                       </button>
+//                       <input
+//                         type="text"
+//                         placeholder="Message"
+//                         value={content}
+//                         onChange={(e) => setContent(e.target.value)}
+//                         className="block w-full py-2 pl-4 mx-3 bg-gray-100 rounded-full outline-none focus:text-gray-700"
+//                         name="message"
+//                         required
+//                       />
+//                       <button type="submit" onClick={sendHandler}>
+//                         <svg
+//                           className="w-5 h-5 text-gray-500 origin-center transform rotate-90"
+//                           xmlns="http://www.w3.org/2000/svg"
+//                           viewBox="0 0 20 20"
+//                           fill="currentColor"
+//                         >
+//                           <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+//                         </svg>
+//                       </button>
+//                     </div>
+//                   </ul>
+//                 </div>
+//               </div>
+//             </div>
+//           ) : (
+//             <div className="flex items-center justify-center h-screen">
+//               <div className="bg-gray-200 p-6 rounded-md">
+//                 <p className="text-center text-gray-700">No chat found</p>
+//               </div>
+//             </div>
+//           )}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default UserChat;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useEffect, useState } from "react";
+// import ApiConnector from "../Chat/lib/apiConnector";
+// import ApiEndpoints from "../Chat/lib/apiEndpoints";
+// import ServerUrl from "../Chat/lib/serverUrl";
+// import Constants from "../Chat/lib/Constants";
+// import SocketActions from "../Chat/lib/socketActions"
+// import CommonUtil from "./Utils/commonUtil";
+// import "./ChatPage.css";
+
+// let socket = new WebSocket(
+//   ServerUrl.WS_BASE_URL + `ws/users/${CommonUtil.getUserId()}/chat/`
+// );
+// let typingTimer = 0;
+// let isTypingSignalSent = false;
+
+// const UserChat = ({ match, currentChattingMember, setOnlineUserList }) => {
+//   const [inputMessage, setInputMessage] = useState("");
+//   const [messages, setMessages] = useState({});
+//   const [typing, setTyping] = useState(false);
+
+//   const fetchChatMessage = async () => {
+//     const currentChatId = CommonUtil.getActiveChatId(match);
+//     if (currentChatId) {
+//       const url =
+//         ApiEndpoints.CHAT_MESSAGE_URL.replace(
+//           Constants.CHAT_ID_PLACE_HOLDER,
+//           currentChatId
+//         ) + "?limit=20&offset=0";
+//       const chatMessages = await ApiConnector.sendGetRequest(url);
+//       setMessages(chatMessages);
+//     }
+//   };
+
+//   useEffect(() => {
+//     fetchChatMessage();
+//   }, [CommonUtil.getActiveChatId(match)]);
+
+//   const loggedInUserId = CommonUtil.getUserId();
+//   const getChatMessageClassName = (userId) => {
+//     return loggedInUserId === userId
+//       ? "chat-message-right pb-3"
+//       : "chat-message-left pb-3";
+//   };
+
+//   socket.onmessage = (event) => {
+//     const data = JSON.parse(event.data);
+//     const chatId = CommonUtil.getActiveChatId(match);
+//     const userId = CommonUtil.getUserId();
+//     if (chatId === data.roomId) {
+//       if (data.action === SocketActions.MESSAGE) {
+//         data["userImage"] = ServerUrl.BASE_URL.slice(0, -1) + data.userImage;
+//         setMessages((prevState) => {
+//           let messagesState = JSON.parse(JSON.stringify(prevState));
+//           messagesState.results.unshift(data);
+//           return messagesState;
+//         });
+//         setTyping(false);
+//       } else if (data.action === SocketActions.TYPING && data.user !== userId) {
+//         setTyping(data.typing);
+//       }
+//     }
+//     if (data.action === SocketActions.ONLINE_USER) {
+//       setOnlineUserList(data.userList);
+//     }
+//   };
+
+//   const messageSubmitHandler = (event) => {
+//     event.preventDefault();
+//     if (inputMessage) {
+//       socket.send(
+//         JSON.stringify({
+//           action: SocketActions.MESSAGE,
+//           message: inputMessage,
+//           user: CommonUtil.getUserId(),
+//           roomId: CommonUtil.getActiveChatId(match),
+//         })
+//       );
+//     }
+//     setInputMessage("");
+//   };
+
+//   const sendTypingSignal = (typing) => {
+//     socket.send(
+//       JSON.stringify({
+//         action: SocketActions.TYPING,
+//         typing: typing,
+//         user: CommonUtil.getUserId(),
+//         roomId: CommonUtil.getActiveChatId(match),
+//       })
+//     );
+//   };
+
+//   const chatMessageTypingHandler = (event) => {
+//     if (event.keyCode !== Constants.ENTER_KEY_CODE) {
+//       if (!isTypingSignalSent) {
+//         sendTypingSignal(true);
+//         isTypingSignalSent = true;
+//       }
+//       clearTimeout(typingTimer);
+//       typingTimer = setTimeout(() => {
+//         sendTypingSignal(false);
+//         isTypingSignalSent = false;
+//       }, 3000);
+//     } else {
+//       clearTimeout(typingTimer);
+//       isTypingSignalSent = false;
+//     }
+//   };
+
+//   return (
+//     <div className="col-12 col-sm-8 col-md-8 col-lg-8 col-xl-10 pl-0 pr-0">
+//       <div className="py-2 px-4 border-bottom d-none d-lg-block">
+//         <div className="d-flex align-items-center py-1">
+//           <div className="position-relative">
+//             <img
+//               src={currentChattingMember?.image}
+//               className="rounded-circle mr-1"
+//               alt="User"
+//               width="40"
+//               height="40"
+//             />
+//           </div>
+//           <div className="flex-grow-1 pl-3">
+//             <strong>{currentChattingMember?.name}</strong>
+//           </div>
+//         </div>
+//       </div>
+//       <div className="position-relative">
+//         <div
+//           id="chat-message-container"
+//           className="chat-messages pl-4 pt-4 pr-4 pb-1 d-flex flex-column-reverse"
+//         >
+//           {typing && (
+//             <div className="chat-message-left chat-bubble mb-1">
+//               <div className="typing">
+//                 <div className="dot"></div>
+//                 <div className="dot"></div>
+//                 <div className="dot"></div>
+//               </div>
+//             </div>
+//           )}
+//           {messages?.results?.map((message, index) => (
+//             <div key={index} className={getChatMessageClassName(message.user)}>
+//               <div>
+//                 <img
+//                   src={message.userImage}
+//                   className="rounded-circle mr-1"
+//                   alt={message.userName}
+//                   width="40"
+//                   height="40"
+//                 />
+//                 <div className="text-muted small text-nowrap mt-2">
+//                   {CommonUtil.getTimeFromDate(message.timestamp)}
+//                 </div>
+//               </div>
+//               <div className="flex-shrink-1 bg-light ml-1 rounded py-2 px-3 mr-3">
+//                 <div className="font-weight-bold mb-1">{message.userName}</div>
+//                 {message.message}
+//               </div>
+//             </div>
+//           ))}
+//         </div>
+//       </div>
+//       <div className="flex-grow-0 py-3 px-4 border-top">
+//         <form onSubmit={messageSubmitHandler}>
+//           <div className="input-group">
+//             <input
+//               onChange={(event) => setInputMessage(event.target.value)}
+//               onKeyUp={chatMessageTypingHandler}
+//               value={inputMessage}
+//               id="chat-message-input"
+//               type="text"
+//               className="form-control"
+//               placeholder="Type your message"
+//               autoComplete="off"
+//             />
+//             <button
+//               id="chat-message-submit"
+//               className="btn btn-outline-warning"
+//             >
+//               Send
+//             </button>
+//           </div>
+//         </form>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default UserChat;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useState, useEffect } from 'react';
+// import { w3cwebsocket as W3CWebSocket } from 'websocket';
+// import Button from '@material-ui/core/Button';
+// import CssBaseline from '@material-ui/core/CssBaseline';
+// import TextField from '@material-ui/core/TextField';
+// import Container from '@material-ui/core/Container';
+// import Card from '@material-ui/core/Card';
+// import CardHeader from '@material-ui/core/CardHeader';
+// import Paper from '@material-ui/core/Paper';
+// import { makeStyles } from '@material-ui/core/styles';
+
+// const useStyles = makeStyles((theme) => ({
+//   submit: {
+//     margin: theme.spacing(3, 0, 2),
+//   },
+//   root: {
+//     marginBottom: theme.spacing(1),
+//   },
+//   paper: {
+//     marginTop: theme.spacing(8),
+//     display: 'flex',
+//     flexDirection: 'column',
+//     alignItems: 'center',
+//   },
+//   form: {
+//     width: '100%',
+//     marginTop: theme.spacing(1),
+//   },
+// }));
+
+// const UserChat = () => {
+//   const classes = useStyles();
+//   const [filledForm, setFilledForm] = useState(false);
+//   const [messages, setMessages] = useState([]);
+//   const [value, setValue] = useState('');
+//   const [name, setName] = useState('');
+//   const [room, setRoom] = useState('test');
+
+//   const client = new W3CWebSocket('ws://127.0.0.1:8000/ws/chat/');
+
+//   const onButtonClicked = (e) => {
+//     client.send(
+//       JSON.stringify({
+//         type: 'message',
+//         text: value,
+//         sender: name,
+//       })
+//     );
+//     setValue('');
+//     e.preventDefault();
+//   };
+
+//   useEffect(() => {
+//     client.onopen = () => {
+//       console.log('WebSocket Client Connected');
+//     };
+
+//     client.onmessage = (message) => {
+//       const dataFromServer = JSON.parse(message.data);
+//       if (dataFromServer) {
+//         setMessages((prevMessages) => [
+//           ...prevMessages,
+//           {
+//             msg: dataFromServer.text,
+//             name: dataFromServer.sender,
+//           },
+//         ]);
+//       }
+//     };
+//   }, [client]);
+
+//   return (
+//     <Container component="main" maxWidth="xs">
+//       {filledForm ? (
+//         <div style={{ marginTop: 50 }}>
+//           Room Name: {room}
+//           <Paper style={{ height: 500, maxHeight: 500, overflow: 'auto', boxShadow: 'none' }}>
+//             {messages.map((message, index) => (
+//               <Card key={index} className={classes.root}>
+//                 <CardHeader title={message.name} subheader={message.msg} />
+//               </Card>
+//             ))}
+//           </Paper>
+//           <form className={classes.form} noValidate onSubmit={onButtonClicked}>
+//             <TextField
+//               id="outlined-helperText"
+//               label="Write text"
+//               defaultValue="Default Value"
+//               variant="outlined"
+//               value={value}
+//               fullWidth
+//               onChange={(e) => {
+//                 setValue(e.target.value);
+//               }}
+//             />
+//             <Button type="submit" fullWidth variant="contained" color="primary" className={classes.submit}>
+//               Send Message
+//             </Button>
+//           </form>
+//         </div>
+//       ) : (
+//         <div>
+//           <CssBaseline />
+//           <div className={classes.paper}>
+//             <form
+//               className={classes.form}
+//               noValidate
+//               onSubmit={(e) => {
+//                 e.preventDefault();
+//                 setFilledForm(true);
+//               }}
+//             >
+//               <TextField
+//                 variant="outlined"
+//                 margin="normal"
+//                 required
+//                 fullWidth
+//                 label="Room name"
+//                 name="Room name"
+//                 autoFocus
+//                 value={room}
+//                 onChange={(e) => {
+//                   setRoom(e.target.value);
+//                 }}
+//               />
+//               <TextField
+//                 variant="outlined"
+//                 margin="normal"
+//                 required
+//                 fullWidth
+//                 name="sender"
+//                 label="sender"
+//                 type="sender"
+//                 id="sender"
+//                 value={name}
+//                 onChange={(e) => {
+//                   setName(e.target.value);
+//                 }}
+//               />
+//               <Button type="submit" fullWidth variant="contained" color="primary" className={classes.submit}>
+//                 Submit
+//               </Button>
+//             </form>
+//           </div>
+//         </div>
+//       )}
+//     </Container>
+//   );
+// };
+
+// export default UserChat;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useState, useEffect } from 'react';
+// import { makeStyles } from '@material-ui/core/styles';
+// import Paper from '@material-ui/core/Paper';
+// import TextField from '@material-ui/core/TextField';
+// import Button from '@material-ui/core/Button';
+// import instance from '../../../utils/Axios';
+
+// const useStyles = makeStyles((theme) => ({
+//     root: {
+//         display: 'flex',
+//         flexDirection: 'column',
+//         padding: theme.spacing(3),
+//         margin: theme.spacing(2),
+//     },
+//     messageContainer: {
+//         display: 'flex',
+//         flexDirection: 'column',
+//         marginTop: theme.spacing(2),
+//     },
+//     message: {
+//         padding: theme.spacing(1),
+//         marginBottom: theme.spacing(1),
+//     },
+//     inputContainer: {
+//         display: 'flex',
+//         alignItems: 'center',
+//         marginTop: theme.spacing(2),
+//     },
+//     textField: {
+//         flexGrow: 1,
+//         marginRight: theme.spacing(2),
+//     },
+// }));
+
+// const UserChat = () => {
+//     const classes = useStyles();
+//     const [message, setMessage] = useState('');
+//     const [messages, setMessages] = useState([]);
+
+//     useEffect(() => {
+//         // Fetch user messages from the backend
+//         const fetchMessages = async () => {
+//             try {
+//                 const response = await instance.get('/api/chat/messages');
+//                 setMessages(response.data);
+//             } catch (error) {
+//                 console.error('Error fetching messages:', error);
+//             }
+//         };
+//         fetchMessages();
+//     }, []);
+
+//     const sendMessage = async () => {
+//         // Send user message to the backend
+//         try {
+//             await instance.post('/api/chat/messages', { message });
+//             // Fetch updated messages after sending a message
+//             const response = await instance.get('/api/chat/messages');
+//             setMessages(response.data);
+//             setMessage(''); // Clear input after sending message
+//         } catch (error) {
+//             console.error('Error sending message:', error);
+//         }
+//     };
+
+//     return (
+//         <Paper className={classes.root}>
+//             <div className={classes.messageContainer}>
+//                 {/* Display messages */}
+//                 {messages.map((msg, index) => (
+//                     <div key={index} className={classes.message}>
+//                         {msg.text}
+//                     </div>
+//                 ))}
+//             </div>
+//             <div className={classes.inputContainer}>
+//                 {/* Input field for sending messages */}
+//                 <TextField
+//                     className={classes.textField}
+//                     variant="outlined"
+//                     label="Type a message"
+//                     value={message}
+//                     onChange={(e) => setMessage(e.target.value)}
+//                 />
+//                 <Button variant="contained" color="primary" onClick={sendMessage}>
+//                     Send
+//                 </Button>
+//             </div>
+//         </Paper>
+//     );
+// };
+
+// export default UserChat;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // UserChat.js
+// import React, { useEffect, useState } from 'react';
+// import API from './API'; // Import API functions for backend interaction
+
+// const UserChat = () => {
+//     const [messages, setMessages] = useState([]);
+
+//     useEffect(() => {
+//         // Fetch messages for the user from the backend
+//         const fetchMessages = async () => {
+//             try {
+//                 const response = await API.get('/messages/');
+//                 setMessages(response.data);
+//             } catch (error) {
+//                 console.error('Error fetching messages:', error);
+//             }
+//         };
+//         fetchMessages();
+//     }, []);
+
+//     // Implement UI for sending and displaying messages
+
+//     const sendMessage = async () => {
+//         // Send message to the admin
+//         try {
+//             await API.post('/messages/', {
+//                 message: 'Your message content here',
+//             });
+//             // Fetch updated messages after sending a new one
+//             const response = await API.get('/messages/');
+//             setMessages(response.data);
+//         } catch (error) {
+//             console.error('Error sending message:', error);
+//         }
+//     };
+
+//     return (
+//         // Render UI for User Chat Component including message display and input
+//         // Implement a UI for sending messages, using the sendMessage function
+//     );
+// };
+
+// export default UserChat;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useEffect, useState, useRef } from "react";
+// import  {useSelector} from "react-redux";
+
+// import CreateChatRoomApi from "../../../api/createChatRoomApi";
+// import GetChatMessages from "../../../api/getChatMessages";
+// import MessageSeenApi from "../../../api/messageSeenApi"
+// import ChatLayout from "../../user/Chat/ChatLayout";
+// import { baseUrl } from "../../../utils/constants";
+// import { Navigate } from "react-router-dom";
+// import { AiOutlineSend } from "react-icons/ai";
+// import jwtDecode from 'jwt-decode';
+
+// const UserChat = () => {
+//   const [profiles, setProfiles] = useState([]);
+//   const [ws, setWs] = useState(null);
+//   const [messages, setMessages] = useState([]);
+//   const [trigger, setTrigger] = useState(false);
+//   const [inputMessage, setInputMessage] = useState("");
+//   const [selectedProfile, setSelectedProfile] = useState(null);
+//   const  user = useSelector((state) => state.auth.userInfo);
+//   const [decodedUserInfo, setDecodedUserInfo] = useState({});
+//   const userId = decodedUserInfo.user_id;
+//   console.log(userId,"useriddddd");
+//   const isAuthenticated = true;
+//   const chatMessagesContainerRef = useRef(null);
+//   const [hasJoinedChatroom, setHasJoinedChatroom] = useState(false);
+  
+
+  
+
+//   useEffect(() => {
+//     if (user) {
+//       // Decode the token and set the user info state
+//       const decodedInfo = jwtDecode(user.access); // Assuming 'access' contains user details
+//       setDecodedUserInfo(decodedInfo);
+//     }},[userId]);
+  
+//   // useEffect(() => {
+//   //   const fetchData = async () => {
+//   //     try {
+//   //       const result = await ContactListAPI();
+//   //       setProfiles(result);
+//   //     } catch (error) {
+//   //       console.error(error);
+//   //     }
+//   //   };
+//   //   if (user) {
+//   //     fetchData();
+//   //   }
+//   // }, [user, trigger]);
+
+//   useEffect(() => {
+//     let messageListener;
+//     if (ws) {
+//       messageListener = (event) => {
+//         const message = JSON.parse(event.data);
+//         setMessages((prevMessages) => [...prevMessages, message]);
+//         setTrigger(true);
+//         // Scroll to the last message
+//         chatMessagesContainerRef.current.scrollTop =
+//         chatMessagesContainerRef.current.scrollHeight;
+//       };
+//       ws.addEventListener("message", messageListener);
+//     }
+//     return () => {
+//       if (ws) {
+//         ws.removeEventListener("message", messageListener);
+//       }
+//     };
+//   }, [ws, trigger]);
+
+//   const handleSendMessage = () => {
+//     try {
+//       if (ws && inputMessage.trim() !== "") {
+//         ws.send(JSON.stringify({ message: inputMessage }));
+//         setInputMessage("");
+//         setTrigger(false);
+//       }
+//     } catch (error) {
+//       console.error("Error sending message:", error);
+//     }
+//   };
+  
+//   const joinChatroom = async (userId) => {
+//     try {
+//       const data = await CreateChatRoomApi(userId);
+//       const accessToken = localStorage.getItem("access_token");
+//       const websocketProtocol =
+//         window.location.protocol === "https:" ? "wss://" : "ws://";
+//       const wsUrl = `${websocketProtocol}127.0.0.1:8000/ws/chat/${data.id}/?token=${accessToken}`;
+//       // const wsUrl = `${websocketProtocol}theghostkart.shop:8001/ws/chat/${data.id}/?token=${accessToken}`;
+      
+
+//       const newChatWs = new WebSocket(wsUrl);
+//       setTrigger(false);
+
+//       newChatWs.onopen = async () => {
+//         console.log("Chatroom WebSocket connection opened");
+//         const previousMessages = await GetChatMessages(data.id);
+//         setMessages(previousMessages);
+//         await MessageSeenApi(userId);
+//         setProfiles((prevProfiles) => {
+//           return prevProfiles.map((profile) => {
+//             if (profile.id === data.id) {
+//               return { ...profile, unseen_message_count: 0 };
+//             }
+//             return profile;
+//           });
+//         });
+//         // Scroll to the last message
+//         chatMessagesContainerRef.current.scrollTop =
+//           chatMessagesContainerRef.current.scrollHeight;
+//       };
+
+//       newChatWs.onclose = () => {
+//         console.log("Chatroom WebSocket connection closed");
+//       };
+
+//       newChatWs.onmessage = (event) => {
+//         const message = JSON.parse(event.data);
+//         console.log(message);
+//       };
+
+//       setWs(newChatWs);
+//        setHasJoinedChatroom(true); 
+//     } catch (error) {
+//       console.error(error);
+//     }
+//     setSelectedProfile(userId);
+//   };
+
+//   if (!isAuthenticated  && user === null) {
+//     return <Navigate to="/" />;
+//   }
+
+//   console.log(messages,"messagessss");
+
+//   return (
+//     <ChatLayout title="Postbox | Chats" content="Messages">
+//       <div className="flex h-screen bg-gray-100 pt-16">
+//         <div className="w-3/5 p-4">
+//           {/* Chat Messages Container */}
+//           <div
+//             className="bg-white p-4 rounded-lg shadow-xl h-5/6 overflow-y-auto"
+//             ref={chatMessagesContainerRef}
+//           >
+//             {messages.map((message, index) => (
+//               <div
+//                 key={index}
+//                 className={`flex mt-4 ${
+//                   message.sender_email === user.email
+//                     ? "justify-end"
+//                     : "justify-start"
+//                 }`}
+//               >
+//                 <div className="flex items-center space-x-3">
+//                   {message.sender_email !== user.email && (
+//                     <div className="h-10 w-10 rounded-full bg-gray-300">
+//                       <img
+//                         src={`${baseUrl}${message.sender_profile_pic}`}
+//                         alt="Profile"
+//                         className="w-full h-full rounded-full object-cover"
+//                       />
+//                     </div>
+//                   )}
+//                   <div className="max-w-xs p-3 rounded-lg shadow-xl bg-blue-200">
+//                     <p className="text-sm">{message.message || message.content}</p>
+//                     <span className="text-xs text-gray-500 leading-none">
+//                       {message.created} ago
+//                     </span>
+//                   </div>
+//                 </div>
+//               </div>
+//             ))}
+//           </div>
+//           {/* Input Field for Sending Messages */}
+          
+//             <div className="bg-gray-200 p-4 rounded-lg">
+//               <div className="relative flex items-center w-full">
+//                 <input
+//                   type="text"
+//                   value={inputMessage}
+//                   onChange={(e) => setInputMessage(e.target.value)}
+//                   className="flex-auto p-2 rounded-full border border-gray-300 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
+//                   placeholder="Type your message..."
+//                 />
+//                 <button
+//                   className="flex items-center justify-center w-12 h-12 rounded-full bg-purple-500 text-white shadow-md transition duration-150 ease-in-out hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
+//                   type="button"
+//                   onClick={handleSendMessage}
+//                 >
+//                   <AiOutlineSend />
+//                 </button>
+//               </div>
+//             </div>
+        
+//         </div>
+//         <div className="w-2/5 p-4">
+//           {/* List of Chat Profiles */}
+//           <div className="bg-white p-4 rounded-lg shadow-xl">
+//             {profiles
+//               ? profiles.map((profile) => (
+//                   <div
+//                     key={profile.id}
+//                     onClick={() => {
+//                       joinChatroom(profile.id);
+//                       setTrigger(true);
+//                     }}
+//                     className={`flex items-center p-3 cursor-pointer ${
+//                       selectedProfile === profile.id ? "bg-purple-100" : "bg-gray-100"
+//                     } rounded-lg mb-4 shadow-md`}
+//                   >
+//                     <div className="h-14 w-14 rounded-full bg-gray-300">
+//                       <img
+//                         src={`${baseUrl}${profile.profile_pic}`}
+//                         alt="Profile"
+//                         className="w-full h-full rounded-full object-cover"
+//                       />
+//                     </div>
+//                 <div className="flex-grow ml-3">
+//                       <h5 className="text-sm font-medium leading-tight text-gray-800">
+//                         {profile.email}
+//                       </h5>
+//                     </div>
+//                   {profile.unseen_message_count > 0 && (
+//                         <div className="bg-red-500 text-white px-2 py-1 rounded-full">
+//                           {profile.unseen_message_count}
+//                         </div> 
+//                       )}
+//                   </div> 
+//                 ))
+//               : null}
+//           </div>
+//         </div>
+//       </div>
+//     </ChatLayout>
+//   );
+// };
+
+// export default UserChat;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useState, useEffect } from 'react';
+// import { makeStyles } from '@material-ui/core/styles';
+// import Paper from '@material-ui/core/Paper';
+// import TextField from '@material-ui/core/TextField';
+// import Button from '@material-ui/core/Button';
+// import instance from '../../../utils/Axios';
+
+// const useStyles = makeStyles((theme) => ({
+//   root: {
+//     display: 'flex',
+//     flexDirection: 'column',
+//     padding: theme.spacing(3),
+//     margin: theme.spacing(2),
+//   },
+//   messageContainer: {
+//     display: 'flex',
+//     flexDirection: 'column',
+//     marginTop: theme.spacing(2),
+//   },
+//   message: {
+//     padding: theme.spacing(1),
+//     marginBottom: theme.spacing(1),
+//   },
+//   inputContainer: {
+//     display: 'flex',
+//     alignItems: 'center',
+//     marginTop: theme.spacing(2),
+//   },
+//   textField: {
+//     flexGrow: 1,
+//     marginRight: theme.spacing(2),
+//   },
+// }));
+
+// const UserChat = ({ user, receiverId }) => {
+//   const classes = useStyles();
+//   const [message, setMessage] = useState('');
+//   const [messages, setMessages] = useState([]);
+
+//   useEffect(() => {
+//     // Fetch messages from backend API
+//     fetchMessages();
+//   }, []);
+
+//   const fetchMessages = async () => {
+//     try {
+//       const response = await instance.get(`/api/chat/messages/${receiverId}/`);
+//       setMessages(response.data);
+//     } catch (error) {
+//       console.error('Error fetching messages:', error);
+//     }
+//   };
+
+//   const sendMessage = async () => {
+//     try {
+//       await instance.post(`/api/chat/messages/`, {
+//         sender: user.id,
+//         receiver: receiverId,
+//         message: message,
+//       });
+//       setMessage('');
+//       fetchMessages(); // Refresh messages after sending a new one
+//     } catch (error) {
+//       console.error('Error sending message:', error);
+//     }
+//   };
+//   if (!receiverId) {
+//     return <div>No receiver selected.</div>;
+//   }
+//  return (
+//     <Paper className={classes.root}>
+//       <div className={classes.messageContainer}>
+//         {messages.map((msg, index) => (
+//           <div key={index} className={classes.message}>
+//             {msg.message}
+//           </div>
+//         ))}
+//       </div>
+//       <div className={classes.inputContainer}>
+//         <TextField
+//           className={classes.textField}
+//           variant="outlined"
+//           label="Type a message"
+//           value={message}
+//           onChange={(e) => setMessage(e.target.value)}
+//         />
+//         <Button variant="contained" color="primary" onClick={sendMessage}>
+//           Send
+//         </Button>
+//       </div>
+//     </Paper>
+//   );
+// };
+
+// export default UserChat;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useState,useEffect } from 'react';
+// import { makeStyles } from '@material-ui/core/styles';
+// import instance from '../../../utils/Axios';
+// import { baseUrl } from '../../../utils/constants';
+// import {
+//   Button,
+//   Typography,
+//   TextField,
+//   Grid,
+//   Paper,
+//   List,
+//   ListItem,
+//   ListItemText,
+// } from '@material-ui/core';
+
+// const useStyles = makeStyles((theme) => ({
+//   // Existing styles...
+// }));
+
+// const UserChat = () => {
+//   const classes = useStyles();
+//   const [messages, setMessages] = useState(JSON.parse(localStorage.getItem('chatMessages')) || []
+//   );
+
+//   const [inputMessage, setInputMessage] = useState('');
+//   useEffect(() => {
+//     localStorage.setItem('chatMessages', JSON.stringify(messages));
+//   }, [messages]);
+
+//   // Function to handle sending a message
+//   const sendMessage = async () => {
+//     if (inputMessage.trim() !== '') {
+//       try {
+//         const response = await instance.post(
+//           `${baseUrl}/api/chat/create_message/`,
+//           {
+//             text: inputMessage, // Sending message text directly in the request body
+//           },
+//           {
+//             headers: {
+//               'Content-Type': 'application/json',
+//               // Add any necessary headers for authentication or other requirements
+//             },
+//           }
+//         );
+  
+//         if (response.status === 200) {
+//           const newMessage = { text: inputMessage };
+//           // Assuming response contains the newly created message data from the server
+//           const responseData = response.data;
+//           if (responseData && responseData.message) {
+//             newMessage.id = responseData.message.id; // Assign an ID received from the server
+//           }
+//           setMessages([...messages, newMessage]);
+//           setInputMessage('');
+//         } else {
+//           // Handle the error response from the server
+//           console.error('Failed to send message:', response.statusText);
+//           // Show an error message or perform other error handling
+//         }
+//       } catch (error) {
+//         // Handle network errors or other exceptions
+//         console.error('Error sending message:', error);
+//         // Show an error message or perform other error handling
+//       }
+//     }
+//   };
+  
+
+//   return (
+//     <div className={classes.chatContainer}>
+//       {/* Existing chat layout... */}
+//       <div className={classes.chatRoom}>
+//         <div id="chat_log" className={classes.chatLog}>
+//           <List>
+//             {/* Displaying messages */}
+//             {messages.map((message, index) => (
+//               <ListItem key={index}>
+//                 <ListItemText primary={message.content} />
+//               </ListItem>
+//             ))}
+//           </List>
+//         </div>
+
+//         {/* Input for sending messages */}
+//         <TextField
+//           id="chat_message_input"
+//           variant="outlined"
+//           fullWidth
+//           margin="dense"
+//           placeholder="Type your message..."
+//           className={classes.chatBox}
+//           value={inputMessage}
+//           onChange={(e) => setInputMessage(e.target.value)}
+//         />
+//         <Button
+//           id="chat_message_submit"
+//           variant="contained"
+//           color="primary"
+//           onClick={sendMessage}
+//         >
+//           Send
+//         </Button>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default UserChat;
+
 
 
 

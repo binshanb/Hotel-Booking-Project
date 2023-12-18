@@ -1,81 +1,148 @@
-import React, { useState, useEffect } from "react";
-import { w3cwebsocket as W3CWebSocket } from "websocket";
-import { Container, Typography, TextField, Button } from "@mui/material";
+// import React, { useEffect, useState } from 'react';
+// import instance from '../../utils/Axios';
+// import { TextField, Button, Paper } from '@mui/material'; // Import Material UI components
 
-function AdminChat() {
-  const [socket, setSocket] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [message, setMessage] = useState(""); // New state to hold the current message
+// const AdminChat = () => {
+//     const [messages, setMessages] = useState([]);
+//     const [responseMessage, setResponseMessage] = useState('');
 
-  useEffect(() => {
-    // Establish WebSocket connection for the admin
-    const newSocket = new W3CWebSocket("ws://localhost:8000/ws/admin-chat/");
-    setSocket(newSocket);
+//     useEffect(() => {
+//         // Fetch messages sent by users from the backend
+//         const fetchMessages = async () => {
+//             try {
+//                 const response = await instance.get('/api/chat/admin/messages/');
+//                 setMessages(response.data);
+//             } catch (error) {
+//                 console.error('Error fetching messages:', error);
+//             }
+//         };
+//         fetchMessages();
+//     }, []);
 
-    newSocket.onopen = () => console.log("WebSocket connected");
-    newSocket.onclose = () => console.log("WebSocket disconnected");
+//     const sendResponse = async (messageId, responseMessage) => {
+//         try {
+//             await instance.post(`/api/chat/admin/messages/${messageId}/response`, {
+//                 message: responseMessage,
+//             });
+//             const response = await instance.get('/api/chat/admin/messages/');
+//             setMessages(response.data);
+//         } catch (error) {
+//             console.error('Error sending response:', error);
+//         }
+//     };
 
-    // Clean up the WebSocket connection when the component unmounts
-    return () => {
-      newSocket.close();
-    };
-  }, []);
+//     return (
+//         <div>
+//             {/* Render UI for Admin Chat Component */}
+//             {/* Display user messages and provide input to send responses */}
+//             {messages.map((message) => (
+//                 <Paper key={message.id} style={{ margin: '10px', padding: '10px' }}>
+//                     <p>{message.message}</p>
+//                     {/* Implement UI to send a response */}
+//                     <TextField
+//                         variant="outlined"
+//                         placeholder="Type response..."
+//                         value={responseMessage}
+//                         onChange={(e) => setResponseMessage(e.target.value)}
+//                         style={{ marginBottom: '10px' }}
+//                     />
+//                     <Button
+//                         variant="contained"
+//                         color="primary"
+//                         onClick={() => sendResponse(message.id, responseMessage)}
+//                     >
+//                         Send Response
+//                     </Button>
+//                 </Paper>
+//             ))}
+//         </div>
+//     );
+// };
 
-  useEffect(() => {
-    if (socket) {
-      socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        setMessages((prevMessages) => [...prevMessages, data]);
-      };
-    }
-  }, [socket]);
+// export default AdminChat;
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    if (message.trim() !== "" && socket) {
-      const data = {
-        message: message,
-        username: "Admin", // Set admin's username here
-      };
-      socket.send(JSON.stringify(data));
-      setMessage(""); // Clear the input field after sending the message
-    }
-  };
 
-  return (
-    <Container maxWidth="md">
-    <Typography variant="h4" gutterBottom>
-      Admin Chat
-    </Typography>
-    <div>
-      {messages.map((message, index) => (
-        <div key={index}>
-          <Typography variant="subtitle1">
-            <strong>{message.username}:</strong> {message.message}
-          </Typography>
-          <Typography variant="caption" color="textSecondary">
-            {message.timestamp}
-          </Typography>
-        </div>
-      ))}
-    </div>
-    <form onSubmit={handleSubmit}>
-      <TextField
-        variant="outlined"
-        fullWidth
-        placeholder="Type a message..."
-        value={message}
-        onChange={(event) => setMessage(event.target.value)}
-      />
-      <br/><br/>
-      <Button variant="contained" color="primary" type="submit">
-        Send
-      </Button>
-    </form>
-  </Container>
-  );
-}
-export default AdminChat;
+
+
+
+// import React, { useState, useEffect } from "react";
+// import { w3cwebsocket as W3CWebSocket } from "websocket";
+// import { Container, Typography, TextField, Button } from "@mui/material";
+
+// function AdminChat() {
+//   const [socket, setSocket] = useState(null);
+//   const [messages, setMessages] = useState([]);
+//   const [message, setMessage] = useState(""); // New state to hold the current message
+
+//   useEffect(() => {
+//     // Establish WebSocket connection for the admin
+//     const newSocket = new W3CWebSocket("ws://localhost:8000/ws/admin-chat/");
+//     setSocket(newSocket);
+
+//     newSocket.onopen = () => console.log("WebSocket connected");
+//     newSocket.onclose = () => console.log("WebSocket disconnected");
+
+//     // Clean up the WebSocket connection when the component unmounts
+//     return () => {
+//       newSocket.close();
+//     };
+//   }, []);
+
+//   useEffect(() => {
+//     if (socket) {
+//       socket.onmessage = (event) => {
+//         const data = JSON.parse(event.data);
+//         setMessages((prevMessages) => [...prevMessages, data]);
+//       };
+//     }
+//   }, [socket]);
+
+//   const handleSubmit = (event) => {
+//     event.preventDefault();
+//     if (message.trim() !== "" && socket) {
+//       const data = {
+//         message: message,
+//         username: "Admin", // Set admin's username here
+//       };
+//       socket.send(JSON.stringify(data));
+//       setMessage(""); // Clear the input field after sending the message
+//     }
+//   };
+
+//   return (
+//     <Container maxWidth="md">
+//     <Typography variant="h4" gutterBottom>
+//       Admin Chat
+//     </Typography>
+//     <div>
+//       {messages.map((message, index) => (
+//         <div key={index}>
+//           <Typography variant="subtitle1">
+//             <strong>{message.username}:</strong> {message.message}
+//           </Typography>
+//           <Typography variant="caption" color="textSecondary">
+//             {message.timestamp}
+//           </Typography>
+//         </div>
+//       ))}
+//     </div>
+//     <form onSubmit={handleSubmit}>
+//       <TextField
+//         variant="outlined"
+//         fullWidth
+//         placeholder="Type a message..."
+//         value={message}
+//         onChange={(event) => setMessage(event.target.value)}
+//       />
+//       <br/><br/>
+//       <Button variant="contained" color="primary" type="submit">
+//         Send
+//       </Button>
+//     </form>
+//   </Container>
+//   );
+// }
+// export default AdminChat;
 
 
   
