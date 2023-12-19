@@ -49,6 +49,7 @@ class AccountUser(AbstractBaseUser, PermissionsMixin):
     state = models.CharField(max_length=100, null=True, blank=True)
     country = models.CharField(max_length=100, null=True, blank=True)
 
+    otp = models.CharField(max_length=6, null=True, blank=True)  # Adding OTP field
 
     is_active = models.BooleanField(default=True)
     last_login = models.DateTimeField(auto_now_add=True)
@@ -74,10 +75,7 @@ class AccountUser(AbstractBaseUser, PermissionsMixin):
     def has_module_perms(self, add_label):
         return True
 
-class OTPVerification(models.Model):
-    phone_number = models.IntegerField()
-    otp = models.CharField(max_length=4)
-    is_verfied = models.BooleanField(default=False)
+
 
 #<---------------------------Basics Credentials-----End------------------>
 

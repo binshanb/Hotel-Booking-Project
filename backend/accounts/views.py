@@ -10,13 +10,13 @@ from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import check_password
 from django.urls import reverse
-from .utils import Util
+# from .utils import Util
 from drf_yasg import openapi
 import jwt
 from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTTokenUserAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .serializers import UserRegisterSerializer,ChangePasswordSerializer,EmailVerificationSerializer,ForgotPasswordSerializer,PasswordResetConfirmSerializer
+from .serializers import UserRegisterSerializer,ChangePasswordSerializer,ForgotPasswordSerializer,PasswordResetConfirmSerializer
 from .serializers import CustomTokenObtainPairSerializer,CustomTokenRefreshSerializer,UserSerializer,SendPasswordResetEmailSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView ,TokenRefreshView
@@ -30,9 +30,14 @@ from django.utils.encoding import force_bytes, force_str
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from accounts.renderers import UserRenderer
-from .models import OTPVerification
-from twilio.rest import Client
+from rest_framework.authtoken.models import Token
 
+from .helper import send,check
+
+# from twilio.rest import Client
+from django.db import IntegrityError
+# import string
+# from .helper import generate_otp, send_otp_email
 
 
 User = get_user_model()
@@ -61,9 +66,11 @@ class UserRegistrationView(APIView):
     def post(self,request):
         serializer = UserRegisterSerializer(data=request.data)
         if serializer.is_valid(raise_exception = True):
-            user=serializer.save()
-            return Response(UserRegisterSerializer(user).data,status=status.HTTP_201_CREATED)
-        
+            try:
+                user = serializer.save()
+                return Response(UserRegisterSerializer(user).data, status=status.HTTP_201_CREATED)
+            except IntegrityError:
+                return Response({"IntegrityError": True}, status=status.HTTP_400_BAD_REQUEST)
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
@@ -271,9 +278,96 @@ class PasswordResetConfirmView(APIView):
                 return Response({'error': 'Invalid user.'}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class OtpSent(APIView):
+    permission_classes=[IsAuthenticated]
+    def post(self, request):
+        phone_number = request.data.get('phone_number')
+        send(phone_number)  # Call send function from helper.py
+        return Response({'message': 'OTP sent successfully'}, status=status.HTTP_200_OK)
+
+class OtpVerify(APIView):
+    permission_classes=[IsAuthenticated]
+    def post(self, request):
+        phone_number = request.data.get('phone_number')
+        otp = request.data.get('otp')
+        if check(phone_number, otp):  # Call check function from helper.py
+            return Response({'message': 'OTP verified successfully'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'message': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# class OtpSent(APIView):
+#     # permission_classes=[IsAuthenticated]
+#     def get(self,request):
+#         print(request.user)
+#         user = request.user
+#         mobile = user.phone
+#         if user:  #if user exists
+#             helper.send('+91' + str(mobile))
+#             return Response({'message':"success"},status=200)
+#         else:
+#             return Response({'message':"User Not Found"},status=401)
+            
+
+# class OtpVerify(APIView):
+#     permission_classes=[IsAuthenticated]
+#     def post(self, request):
+#         # Extract 'otp' from the query parameters
+     
+#         otp = request.data.get('otp')
+#         user = request.user
+#         mobile = user.phone_number
+#         print(mobile,otp)
+#         if helper.check('+91' + str(mobile), otp):
+#                 print(user,"this is user")
+#                 return Response({'message':"succes"},status=200)
+#         else:
+#                 return Response({'message':"Invalid Otp"},status=400)
 
 
 
+
+# class LoginWithOTP(APIView):
+#     def post(self, request):
+#         email = request.data.get('email', '')
+#         try:
+#             user = AccountUser.objects.get(email=email)
+#         except AccountUser.DoesNotExist:
+#             return Response({'error': 'User with this email does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+
+#         otp = generate_otp()
+#         user.otp = otp
+#         user.save()
+
+#         send_otp_email(email, otp)
+#         # send_otp_phone(phone_number, otp)
+
+#         return Response({'message': 'OTP has been sent to your email.'}, status=status.HTTP_200_OK)
+    
+
+
+# class ValidateOTP(APIView):
+#     def post(self, request):
+#         email = request.data.get('email', '')
+#         otp = request.data.get('otp', '')
+
+#         try:
+#             user = AccountUser.objects.get(email=email)
+#         except AccountUser.DoesNotExist:
+#             return Response({'error': 'User with this email does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+
+#         if user.otp == otp:
+#             user.otp = None  # Reset the OTP field after successful validation
+#             user.save()
+
+#             # Authenticate the user and create or get an authentication token
+#             token, _ = Token.objects.get_or_create(user=user)
+
+#             return Response({'token': token.key}, status=status.HTTP_200_OK)
+#         else:
+#             return Response({'error': 'Invalid OTP.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 

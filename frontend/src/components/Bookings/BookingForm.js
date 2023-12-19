@@ -4,6 +4,8 @@ import instance from '../../utils/Axios';
 import { useNavigate } from 'react-router-dom';
 import { baseUrl } from '../../utils/constants';
 import { useSelector, useDispatch } from 'react-redux';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 // import  {userInfo} from "../../redux/slices/userslices/authSlice"
 import { activateRoomInfo } from '../../redux/slices/roomslices/roomSlice';
 
@@ -93,15 +95,34 @@ const BookingForm = ({roomId}) => {
     const currentDate = new Date();
     return date > currentDate;
   }
+  const updatedFormData = {
+    ...formData,
+    user: decodedUserInfo.user_id,
+    room: roomInfo.id,
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('UpdatedForm data:', updatedFormData);
+
+    const { check_in, check_out } = formData;
+    const checkInTimestamp = Date.parse(check_in);
+    const checkOutTimestamp = Date.parse(check_out);
 
 
-    if (validateDate(formData.check_in) || validateDate(formData.check_out)) {
-      alert("Invalid date selection. Please choose future dates for check-in and checkout.");
+
+    if (checkInTimestamp >= checkOutTimestamp) {
+      toast.error("Invalid date selection. Please choose future dates for check-in and checkout.", {
+        position: 'top-right',
+        autoClose: 3000, // Duration for which the toast is shown (in milliseconds)
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
       return;
     }
-  
+    console.log('Form is valid. Proceeding with submission.');
     // try {
     //   // Validate formData and retrieve needed information
     //   // ... (assuming formData, decodedUserInfo, and roomInfo are defined)
@@ -132,13 +153,21 @@ const BookingForm = ({roomId}) => {
  
     try {
       // Perform API call to create a booking
-      const response = await instance.post(`${baseUrl}/api/booking/add-roombooking/`, formData);
+      const response = await instance.post(`${baseUrl}/api/booking/add-roombooking/`, updatedFormData);
     
       // Check if the booking creation was successful
       if (response && response.data) {
         const bookingId = response.data.id;
         dispatch(activateBookingInfo({ ...response.data.data }));
-        alert('Booking added. Proceed to Payments to Complete!');
+        toast.success('Booking added. Proceed to Payments to Complete!', {
+          position: 'top-right',
+          autoClose: 3000, // Duration for which the toast is shown (in milliseconds)
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
         navigate(`/roombooking-page/${bookingId}`);
       }
     } catch (error) {
@@ -148,6 +177,9 @@ const BookingForm = ({roomId}) => {
       }
       alert('An error occurred while booking. Please try again.');
     }}
+
+
+
 return (
     <div>
       <h2>Room Booking Form</h2>

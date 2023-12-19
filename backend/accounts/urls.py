@@ -4,6 +4,7 @@ from .views import  UserRegistrationView,GetRoutesView,UserProfileView,UserProfi
 from .views import CustomTokenObtainPairView, CustomTokenRefreshView,UserListView,BlockUnblockUserView,UserDetailView,UserProfileUpdateView
     
 from .views import  ForgotPasswordView, PasswordResetConfirmView,ChangePasswordView,SendPasswordResetEmailView
+from .views import OtpSent, OtpVerify
 
 urlpatterns = [
     
@@ -17,8 +18,13 @@ urlpatterns = [
     path('user/detail-view/<int:user_id>/',UserDetailView.as_view(), name='user-detail'),
     path('user/add-profile/<int:user_id>', UserProfileCreateView.as_view(), name='user-profile-create'),
     path('user/update-profile/<int:user_id>', UserProfileUpdateView.as_view(), name='user-updation'),
-   
-    # path('email-verify/', VerifyEmail.as_view(), name="email-verify"),
+
+
+    path('send-otp/', OtpSent.as_view(), name='send_otp'),
+    path('verify-otp/', OtpVerify.as_view(), name='verify_otp'),
+    # Other URL patterns...
+
+
     path('forgot-password/', ForgotPasswordView.as_view(), name='forgot-password'),
     path('reset-password-confirm/<str:uidb64>/<str:token>/', PasswordResetConfirmView.as_view(), name='password-reset'),
     path('change-password/', ChangePasswordView.as_view(), name='change-password'),

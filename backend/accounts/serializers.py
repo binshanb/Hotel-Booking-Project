@@ -11,7 +11,7 @@ from .models import Role
 from django.utils.timesince import timesince
 from django.utils.encoding import smart_str, force_bytes, DjangoUnicodeDecodeError
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from accounts.utils import Util
+# from accounts.utils import Util
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
 # user register serializer
@@ -114,11 +114,12 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 
-class EmailVerificationSerializer(serializers.ModelSerializer):
-    token = serializers.CharField(max_length=555)
-    class Meta:
-        model = User
-        fields = ['token']
+
+
+class OTPSerializer(serializers.Serializer):
+    phone_number = serializers.CharField(max_length=15)
+    otp = serializers.CharField(max_length=6)
+
     
 
 

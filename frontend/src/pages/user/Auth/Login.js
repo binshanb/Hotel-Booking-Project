@@ -116,7 +116,7 @@ function UserLogin() {
       {/* ToastContainer (assuming it's from a library like react-toastify) doesn't have a direct equivalent in Material-UI */}
       <Box className="links-container text-end mt-2">
         <Typography>
-          <RouterLink to="/user/send-otp" className="ms-2">
+          <RouterLink to="/otp-login" className="ms-2">
             Otp Login
           </RouterLink> |
           <RouterLink to="/forgot-password/"> Forgot Password ? </RouterLink> |

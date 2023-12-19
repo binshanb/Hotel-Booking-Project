@@ -99,7 +99,7 @@ function RoomDetail({rooms}) {
         </Box>
       )}
        {/* Check if roomData has loaded and is available */}
-       {isRoomData && roomData && (
+       {isRoomData && roomData && roomData.id && (
         <Box mb={4}>
           <Card className={classes.card}>
             {/* Display the first image as the cover image */}
@@ -129,6 +129,8 @@ function RoomDetail({rooms}) {
            {isRoomData && roomData && (
             <RoomImages roomData={roomData} />
     )}  */}
+    {isRoomData && roomData && roomData.id && (
+      <Box mb={4}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
             {roomData.title}
@@ -157,7 +159,7 @@ function RoomDetail({rooms}) {
           <Typography variant="body1" color="textPrimary" gutterBottom>
             Features: {roomData.features ? roomData.features.map((feature) => feature.name).join(', ') : 'Not available'}
           </Typography>
-        </CardContent>
+        
    
 
 
@@ -175,6 +177,9 @@ function RoomDetail({rooms}) {
 
          <ReviewList/>
       </Box>
+      </CardContent>
+      </Box>
+    )}
     </Box> 
   );
 };

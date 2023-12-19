@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import AccountUser,OTPVerification
+from .models import AccountUser
 
 class AccountUserAdmin(UserAdmin):
     list_display = ('id', 'email', 'phone_number', 'is_active', 'role', 'is_superuser')
@@ -30,7 +30,7 @@ class ChatMessageAdmin(admin.ModelAdmin):
 
 admin.site.register(AccountUser,AccountUserAdmin)
 
-admin.site.register(OTPVerification)
+
 
 
 

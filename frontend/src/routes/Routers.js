@@ -7,6 +7,8 @@ import RouteAdmin from  '../utils/RouteAdmin'
 import Login from '../pages/user/Auth/Login'
 import Register from '../pages/user/Auth/Register'
 import AdminLogin from '../pages/admin/AdminLogin'
+import GetNumber from '../pages/user/OTP/OtpLogin'
+import CheckOTP from '../pages/user/OTP/OtpVerify'
 import UserManagement from '../pages/admin/UserManagement'
 import Logout from '../pages/user/Auth/Logout'
 import AdminLogout from '../pages/admin/AdminLogout'
@@ -39,6 +41,8 @@ import AdminChat from '../pages/Chat/AdminChat'
 import BookingReport from '../pages/admin/Booking/BookingReport'
 import ChangePassword from '../pages/user/Auth/ChangePassword'
 import WalletDetails from '../pages/user/Wallet/WalletDetails'
+import OtpLogin from '../pages/user/OTP/OtpLogin'
+import OtpVerify from '../pages/user/OTP/OtpVerify'
 
 
 
@@ -60,9 +64,10 @@ const Routers = () => {
       <Route path='/signup' element={<Register />} />
       <Route path='/login' element={<Login/>} />
       
-      
       <Route path='/forgot-password' element={<ForgotPassword/>} />
       <Route path='/change-password' element={<ChangePassword />} />
+      <Route path="/otp-login" element={<OtpLogin/>}/>
+      <Route path="/otp-verify" element={<OtpVerify/>}/>
       <Route path="/" element={<HomePage/>}/>
       <Route path='' element={<RouteUser/>} >
         
