@@ -107,7 +107,7 @@ const Routers = () => {
 
         <Route path='/get-available-rooms' element={<AvailableRoomsPage/>} />
         <Route path='/add-roombooking' element={<BookingForm/>} />
-        <Route path='/roombooking-page/:id' element={<BookingPage/>} />
+        <Route path='/roombooking-page' element={<BookingPage/>} />
         <Route path='/booking-success' element={<BookingSuccessPage/>} />
         <Route path='/my-bookings/:user_id' element={<MyBookings/>} />
         <Route path='/booking-report' element={<BookingReport/>} />

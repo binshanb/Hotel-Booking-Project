@@ -31,6 +31,8 @@ urlpatterns = [
 
 
     path('add-roombooking/', RoomBookingCreateView.as_view(), name='add-roombooking'),
+    path('check-overlapping-bookings/',CheckOverlappingBookingsView.as_view(), name='check_overlapping_bookings'),
+
     path('roombooking-page/<int:id>/', RoomBookingPageView.as_view(), name='booking-page'), 
     path('booking-list/', RoomBookingListView.as_view(), name='booking-list'),
     path('my-bookings/<int:user_id>/', UserBookingsView.as_view(), name='my-bookings'),

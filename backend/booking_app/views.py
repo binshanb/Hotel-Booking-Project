@@ -309,14 +309,42 @@ class RoomBookingCreateView(CreateAPIView):
         
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
+        check_in = serializer.validated_data['check_in']
+        check_out = serializer.validated_data['check_out']
+        room = serializer.validated_data['room']  
+
+        # Check for overlapping bookings
+        if RoomBooking.objects.filter(room=room, check_out__gt=check_in, check_in__lt=check_out).exists():
+            return Response({'message': 'Overlapping booking exists'}, status=status.HTTP_400_BAD_REQUEST)
         self.perform_create(serializer)
         
-        print(serializer.data,"seriiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
         headers = self.get_success_headers(serializer.data)
         response['data'] = serializer.data
         
         response['response'] = "Room is successfully booked"
         return Response(response, status=status.HTTP_201_CREATED, headers=headers)
+    
+class CheckOverlappingBookingsView(APIView):
+    def post(self, request):
+        check_in = request.data.get('check_in')
+        check_out = request.data.get('check_out')
+        room_id = request.data.get('room')
+
+        # Check for overlapping bookings for the given room and time frame
+        overlapping_bookings = RoomBooking.objects.filter(
+            Q(room=room_id) &
+            (
+                (Q(check_in__lt=check_in) & Q(check_out__gt=check_in)) |
+                (Q(check_in__lt=check_out) & Q(check_out__gt=check_out)) |
+                (Q(check_in__gte=check_in) & Q(check_out__lte=check_out))
+            )
+        )
+
+        if overlapping_bookings.exists():
+            return Response({'message': 'Overlapping booking exists'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'message': 'No overlapping booking'}, status=status.HTTP_200_OK)
 
     # def post(self, request, *args, **kwargs):
     #     room = get_object_or_404(Room, pk=request.data['room'])

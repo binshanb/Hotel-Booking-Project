@@ -14,7 +14,7 @@ const BookingSuccessPage = () => {
   // Use the location hook to get data passed from the previous page (if needed)
 
 
-  const bookingInfos = useSelector((state) => state.bookingInfo);
+  const bookingInfos = useSelector((state) => state.booking.bookingInfo);
   console.log(bookingInfos,"infossssssssss"); // Access the booking info from Redux store
   const bookingId = bookingInfos ? bookingInfos.id : null; // Check if bookingInfos is defined
 

@@ -123,6 +123,9 @@ const BookingForm = ({roomId}) => {
       return;
     }
     console.log('Form is valid. Proceeding with submission.');
+
+
+
     // try {
     //   // Validate formData and retrieve needed information
     //   // ... (assuming formData, decodedUserInfo, and roomInfo are defined)
@@ -152,13 +155,23 @@ const BookingForm = ({roomId}) => {
     //       console.log(formattedData, "This is formatted data");
  
     try {
+      const response = await instance.post(`${baseUrl}/api/booking/check-overlapping-bookings/`, {
+        check_in: updatedFormData.check_in,
+        check_out: updatedFormData.check_out,
+        number_of_guests:updatedFormData.number_of_guests,
+        user: updatedFormData.user.user_id,
+        room: updatedFormData.room.id,
+        
+      });
+
       // Perform API call to create a booking
-      const response = await instance.post(`${baseUrl}/api/booking/add-roombooking/`, updatedFormData);
+      if (response.data && response.data.message !== 'Overlapping booking exists') {
+          await instance.post(`${baseUrl}/api/booking/add-roombooking/`, updatedFormData);
     
       // Check if the booking creation was successful
-      if (response && response.data) {
-        const bookingId = response.data.id;
-        dispatch(activateBookingInfo({ ...response.data.data }));
+      // if (response && response.data) {
+      //   const bookingId = response.data.id;
+      //   dispatch(activateBookingInfo({ ...response.data.data }));
         toast.success('Booking added. Proceed to Payments to Complete!', {
           position: 'top-right',
           autoClose: 3000, // Duration for which the toast is shown (in milliseconds)
@@ -168,18 +181,19 @@ const BookingForm = ({roomId}) => {
           draggable: true,
           progress: undefined,
         });
-        navigate(`/roombooking-page/${bookingId}`);
+        navigate('/roombooking-page');
+      }
+      else {
+        // If an overlapping booking exists, display an error message
+        toast.error('Overlapping booking exists. Please choose different dates or room.');
       }
     } catch (error) {
+      // Handle API errors or other exceptions
       console.error('Error creating booking:', error);
-      if (error.response) {
-        console.error('Response data:', error.response.data);
-      }
-      alert('An error occurred while booking. Please try again.');
+      toast.error('Error creating booking. Please try again.');
+
+
     }}
-
-
-
 return (
     <div>
       <h2>Room Booking Form</h2>

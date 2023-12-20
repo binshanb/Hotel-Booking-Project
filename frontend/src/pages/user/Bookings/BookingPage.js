@@ -47,7 +47,7 @@ function BookingPage  ({ razorpayKey}) {
       const decodedInfo = jwtDecode(userInfos.access); // Assuming 'access' contains user details
       console.log(decodedInfo);
       setDecodedUserInfo(decodedInfo);
-}},[]);
+}},[userInfos]);
 
   // useEffect(()=>{
   //   if (bookingId){
