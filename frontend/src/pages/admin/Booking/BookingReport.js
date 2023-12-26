@@ -14,7 +14,9 @@ import {
 } from '@mui/material';
 
 const BookingReport = () => {
+    
     const [bookings, setBookings] = useState([]);
+    console.log(bookings,"total");
     const [loading, setLoading] = useState(true);
     const [totalBookingCount, setTotalBookingCount] = useState(0);
     const [totalBookingAmount, setTotalBookingAmount] = useState(0);

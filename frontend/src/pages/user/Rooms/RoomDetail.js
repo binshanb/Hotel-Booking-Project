@@ -83,7 +83,7 @@ function RoomDetail({rooms}) {
   // }
   console.log("isRoomData:", isRoomData);
 
-
+  const roomId = roomData.id
   return (
     <Box p={4} className="room-container">
       <Box textAlign="center" my={5}>
@@ -99,7 +99,7 @@ function RoomDetail({rooms}) {
         </Box>
       )}
        {/* Check if roomData has loaded and is available */}
-       {isRoomData && roomData && roomData.id && (
+       {isRoomData && roomData && roomId && (
         <Box mb={4}>
           <Card className={classes.card}>
             {/* Display the first image as the cover image */}
@@ -162,23 +162,26 @@ function RoomDetail({rooms}) {
         
    
 
+      
 
-
-<button onClick={handleReview} variant="contained" color="primary" size ="large">
-  Add a Review
-</button>
-<Box mt={4} display="flex" justifyContent="center">
+    
+    <Box mt={4} display="flex" justifyContent="center">
         <Button onClick={handleBooking} variant="contained" color="primary" size="large">
            Book Now
         </Button>
         <Button onClick={handleRooms} variant="outlined" color="primary" size="large">
           Back to Room List
          </Button>
-
-         <ReviewList/>
+      
       </Box>
+    
       </CardContent>
+      <Button onClick={handleReview} variant="contained" className={classes.reviewButton} size="large">
+      Add Review
+    </Button>
+    <ReviewList roomId={roomId}/>
       </Box>
+     
     )}
     </Box> 
   );

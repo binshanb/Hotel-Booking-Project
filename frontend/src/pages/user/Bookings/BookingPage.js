@@ -19,23 +19,29 @@ import jwtDecode from 'jwt-decode';
 import { useDispatch } from 'react-redux';
 import { activateBookingInfo } from '../../../redux/slices/bookingslices/bookingslice';
 import { useNavigate } from 'react-router-dom';
-
+import { useParams } from 'react-router-dom';
 
 function BookingPage  ({ razorpayKey}) {
   const dispatch = useDispatch();
 
   const navigate = useNavigate();
+  const { id } = useParams();
+  console.log(id,"ideeeeeee");
 
   const [price,setPrice] = useState(0);
   console.log(price,"price:");
   // const location = useLocation();
   // const queryParams = new URLSearchParams(location.search);
-  const [bookingDetails, setBookingDetails] = useState(null);
+  const [updatedFormData, setUpdatedFormData] = useState(null); // Define state to hold updatedFormData
+
+  
 
   const userInfos = useSelector((state) => state.auth.userInfo);
   const [decodedUserInfo, setDecodedUserInfo] = useState({});
   const roomData = useSelector((state)=>state.room.roomInfo)
-  const bookingData = useSelector((state)=>state.booking.bookingInfo);
+  // const bookingData = useSelector((state)=>state.booking.bookingInfo);
+  // console.log(bookingData,"bookdataaaaaaa");
+
   
   // const bookingRoomData = { id: bookingData.id };
  
@@ -48,40 +54,47 @@ function BookingPage  ({ razorpayKey}) {
       console.log(decodedInfo);
       setDecodedUserInfo(decodedInfo);
 }},[userInfos]);
+useEffect(() => {
+  if (id) {
+    instance
+      .get(`${baseUrl}/api/booking/roombooking-page/${id}/`)
+      .then((response) => {
+        console.log(response.data, "resssssss");
+        // Assuming response.data holds the data you need
+        setUpdatedFormData(response.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching booking details:', error);
+      });
+  }
+}, [id]);
 
-  // useEffect(()=>{
-  //   if (bookingId){
-  //     dispatch(setBookingInfo(bookingId));
-  //   }
-  // },[dispatch,bookingId]);
 
-  // useEffect(() => {
-  //   instance.get(`/api/booking/roombooking-page/${bookingData.id}/`)
-  //     .then((response) => response.data)
-  //       .then((data) => {
-  //         console.log('Booking data:',data[0]);
-  //       setBookingDetails(data[0]);
-  //       dispatch(activateBookingInfo(data[0]))
-  //     })
-  //     .catch(error => {
-  //       console.error('Error fetching booking details:', error);
-  //     });
-  // }, [bookingData.id]);
+
+// useEffect(() => {
+//   console.log(updatedFormData, "Formdataaaa");
+// }, [updatedFormData]);
+    // Decode the token and set the user info state
+
+console.log(updatedFormData,"Formdataaaa");
+
+
+
   
 
   // Calculate price based on booking details
   useEffect(() => {
-    if (bookingData) {
-      const checkInDate = new Date(bookingData.check_in);
+    if (updatedFormData) {
+      const checkInDate = new Date(updatedFormData.check_in);
 
-      const checkOutDate = new Date(bookingData.check_out);
-      const numberOfGuests = parseInt(bookingData.number_of_guests);
+      const checkOutDate = new Date(updatedFormData.check_out);
+      const numberOfGuests = parseInt(updatedFormData.number_of_guests);
   
       const oneDay = 24 * 60 * 60 * 1000; // Number of milliseconds in a day
       const diffDays = Math.round(Math.abs((checkOutDate - checkInDate) / oneDay));
     
 
-      const pricePerNight = roomData.price_per_night; // Replace with actual price per night
+      const pricePerNight = updatedFormData.price; // Replace with actual price per night
 
       const calculatedPrice = diffDays * pricePerNight * numberOfGuests;
       
@@ -89,15 +102,19 @@ function BookingPage  ({ razorpayKey}) {
       setPrice(calculatedPrice)
   
 
+    }else{
+      setPrice(0);
     }
-  }, [bookingData,roomData]);
+  }, [updatedFormData]);
   // Retrieve other form data fields similarly
-  const bookingId = bookingData.id
+
+
+  const bookingId = id
   console.log(bookingId,"ideeee");
   console.log(price,"amount");
   console.log(roomData,"room");
 
-
+  
   const handleHotelBookingPayment = async (bookingId, price, roomData) => {
 
     console.log(bookingId,price,"joooo");
@@ -169,6 +186,7 @@ function BookingPage  ({ razorpayKey}) {
   return (
     <Grid container spacing={3}>
     <Grid item xs={12} md={6}>
+    {updatedFormData && ( 
       <Paper elevation={3}>
         <Typography variant="h4" gutterBottom>
           Booking Details
@@ -201,6 +219,7 @@ function BookingPage  ({ razorpayKey}) {
           {/* Add more room details */}
         </Paper>
       </Paper>
+    )}
     </Grid>
 
     {/* Price Summary Card */}
@@ -214,19 +233,19 @@ function BookingPage  ({ razorpayKey}) {
           Price Per Night: {roomData ? roomData.price_per_night : ''}
         </Typography>
         <Typography variant="body1">
-          Check In Date : {bookingData.check_in}
+          Check In Date : {updatedFormData && updatedFormData.check_in ? updatedFormData.check_in : ''}
         </Typography>
         <Typography variant="body1">
-          Check Out Date : { bookingData.check_out}
+          Check Out Date :{ updatedFormData && updatedFormData.check_out ? updatedFormData.check_out : ''}
         </Typography>
         <Typography variant="body1">
-          Number Of Guests : {bookingData.number_of_guests}
+          Number Of Guests : {updatedFormData ? updatedFormData.number_of_guests : ''}
         </Typography>
         <Divider />
         <Typography variant="body1">Total Price: ${price}</Typography>
 
         {/* Payment method using Razorpay */}
-        <Button variant="contained" color="primary" onClick={() => handleHotelBookingPayment(bookingId, price,roomData)} sx={{ mt: 2 }}>
+        <Button variant="contained" color="primary" onClick={() => handleHotelBookingPayment(bookingId,price,roomData)} sx={{ mt: 2 }}>
           Pay Now with Razorpay
         </Button>
       </Paper>

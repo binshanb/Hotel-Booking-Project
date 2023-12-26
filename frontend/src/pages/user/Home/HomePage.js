@@ -279,45 +279,32 @@ return (
   <h2 className="text-4xl font-bold text-gray-800 underline">Features</h2> */}
 
 <Container py={8} maxWidth="lg">
-      <Typography variant="h2" component="h2" fontWeight="bold" color="textPrimary" textDecoration="underline" mb={4}>
-        Features
-      </Typography>
-
-      <Grid container spacing={6}>
-        {cards.map((card, index) => (
-          <Grid item key={index} xs={12} md={4}>
-            <Card elevation={3}>
-              <CardMedia
-                component="img"
-                height="200"
-                image={card.imageUrl}
-                alt={card.title}
-                style={{ objectFit: 'cover' }}
-              />
-              <Box p={2}>
-                <Typography variant="h4" component="h3" mb={1}>
-                  {card.title}
-                </Typography>
-                <Typography variant="body1" component="p">
-                  {card.description}
-                </Typography>
-                <Button
-    variant="contained"
-    color="primary"
-    component={RouterLink}
-    to="/categorylist"
-    mt={2}
-  >
-    View Here
-  </Button>
-
-              </Box>
-            </Card>
-          </Grid>
-        ))}
-      
-      </Grid>
-    </Container>
+            <Typography variant="h2" component="h2" fontWeight="bold" color="textPrimary" textDecoration="underline" mb={4}>
+              Features
+            </Typography>
+            {/* Cards Section */}
+            <Grid container spacing={6}>
+              {/* Features Cards */}
+              {cards.map((card, index) => (
+                <Grid item key={index} xs={12} md={4}>
+                  <Card elevation={3}>
+                    <CardMedia component="img" height="200" image={card.imageUrl} alt={card.title} style={{ objectFit: 'cover' }} />
+                    <CardContent>
+                      <Typography variant="h6" component="h3" mb={1}>
+                        {card.title}
+                      </Typography>
+                      <Typography variant="body1" component="p">
+                        {card.description}
+                      </Typography>
+                      <Button variant="contained" color="primary" component={RouterLink} to="/categorylist" mt={2}>
+                        View Here
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          </Container>
     <br/>
 
   </main>

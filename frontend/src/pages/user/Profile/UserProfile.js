@@ -82,13 +82,9 @@ const handleMyBookingsClick = () => {
 };
 const handleResetPasswordClick = () => {
   // Check if uidb64 and token have valid values
-  if (uid && token) {
-    navigate(`/reset-password-confirm/${uid}/${token}/`);
-  } else {
-    // Handle scenario where uidb64 and token are missing or invalid
-    console.error('Invalid uidb64 or token');
-    // You might want to display an error message to the user or perform some other action here
-  }
+
+    navigate('/change-password');
+  
 };
 
 const {first_name} = userData

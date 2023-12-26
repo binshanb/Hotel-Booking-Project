@@ -34,12 +34,12 @@ packaging==23.2
 phonenumbers==8.13.23
 Pillow==10.0.0
 platformdirs==3.2.0
-# psycopg2==2.9.7
-# psycopg2-binary==2.9.7
+psycopg2==2.9.7
+psycopg2-binary==2.9.7
 pyasn1==0.5.1
 pyasn1-modules==0.3.0
 pycparser==2.21
-PyJWT==2.8.0
+PyJWT
 pyOpenSSL==23.3.0
 python-decouple==3.8
 python-dotenv==1.0.0

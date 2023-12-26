@@ -42,7 +42,7 @@ function AdminChat() {
     }, [chats]);
 
     useEffect(() => {
-        const newSocket = new w3cwebsocket('ws://127.0.0.1:8000/ws/chat/chat-messages/'); // Replace with your WebSocket URL
+        const newSocket = new w3cwebsocket('ws://127.0.0.1:8001/ws/chat/chat-messages/'); // Replace with your WebSocket URL
     
         newSocket.onopen = function(event) {
           console.log('WebSocket connection established.');
@@ -125,10 +125,10 @@ function AdminChat() {
             </div>
             <div className="flex-1 overflow-y-auto p-4" ref={chatContainerRef}>
             {chats.map((msg, index) => (
-          <div key={index} className={msg.sender > 1 ? 'flex justify-end' : 'flex justify-start'}>
+          <div key={index} className={msg.sender < 8 ? 'flex justify-end' : 'flex justify-start'}>
           <div className={`p-2 max-w-xs rounded-lg ${isAdminMessage(msg) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'}`}>
             <p className="m-0">{msg.message}</p>
-            <p>{msg.sender > 1 ?  decodedUserInfo.email : 'Admin' }</p>
+            <p>{msg.sender > 7 ? 'Admin':decodedUserInfo.email  }</p>
             <p>{new Date(msg.timestamp).toLocaleString()}</p>
            </div>
            </div>

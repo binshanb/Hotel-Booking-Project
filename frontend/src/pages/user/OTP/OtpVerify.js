@@ -1,26 +1,30 @@
-import React, { useState } from 'react';
-import instance from '../../../utils/Axios';
+import { useState } from 'react';
+import instance from '../../../utils/Axios'; // Assuming Axios is configured for API requests
 import { baseUrl } from '../../../utils/constants';
+import { useNavigate } from 'react-router-dom';
 
-const OtpVerify = () => {
+const OTPVerify = () => {
+  const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
+  console.log(otp,"otp");
   const [message, setMessage] = useState('');
+  const navigate = useNavigate();
+  
 
-  const handleOtpChange = (event) => {
+  const handlePhoneChange = (event) => {
+    setPhone(event.target.value);
+  };
+  
+  const handleOTPChange = (event) => {
     setOtp(event.target.value);
   };
 
-  const handleVerifyOtp = async () => {
+  const handleVerifyOTP = async () => {
     try {
-      const response = await instance.post(`${baseUrl}/api/verify-otp/`, { otp }, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('authToken')}`, // Include authentication token if needed
-        },
-      });
-
+      const response = await instance.post(`${baseUrl}/api/otp-verify/`,{phone_number:phone,otp:otp});
       if (response.status === 200) {
         setMessage('OTP verified successfully.');
-        // Handle successful OTP verification, such as redirecting to another page.
+       navigate('/')
       } else {
         setMessage('Invalid OTP. Please try again.');
       }
@@ -28,19 +32,27 @@ const OtpVerify = () => {
       setMessage('Error verifying OTP. Please try again.');
     }
   };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
       <div className="max-w-md w-full bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
         <h1 className="text-2xl mb-4">OTP Verification</h1>
         <input
           type="text"
+          placeholder="Enter Phone Number"
+          value={phone}
+          onChange={handlePhoneChange}
+          className="shadow appearance-none border rounded w-full py-2 px-3 mb-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+        />
+        <input
+          type="text"
           placeholder="Enter OTP"
           value={otp}
-          onChange={handleOtpChange}
+          onChange={handleOTPChange}
           className="shadow appearance-none border rounded w-full py-2 px-3 mb-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
         />
         <button
-          onClick={handleVerifyOtp}
+          onClick={handleVerifyOTP}
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
         >
           Verify OTP
@@ -51,7 +63,8 @@ const OtpVerify = () => {
   );
 };
 
-export default OtpVerify;
+export default OTPVerify;
+
 
 
 

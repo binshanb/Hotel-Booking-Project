@@ -1,25 +1,10 @@
 import React from 'react';
+import { Box, Typography, Divider, Button, Container } from '@mui/material';
+import { Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
-import {
-  Box,
-  Typography,
-  Divider,
-  Button,
-  Container,
-} from '@mui/material';
-
-import { Link } from 'react-router-dom'; 
-import { useSelector } from 'react-redux';
 const BookingSuccessPage = () => {
-  // Use the location hook to get data passed from the previous page (if needed)
-
-
-  const bookingInfos = useSelector((state) => state.booking.bookingInfo);
-  console.log(bookingInfos,"infossssssssss"); // Access the booking info from Redux store
-  const bookingId = bookingInfos ? bookingInfos.id : null; // Check if bookingInfos is defined
-
-  console.log(bookingId,"infossssssssss");
-
+  const { bookingId, price } = useParams(); // Destructure bookingId and price from match.params
 
   return (
     <Container maxWidth="sm">
@@ -30,6 +15,9 @@ const BookingSuccessPage = () => {
         <Divider />
         <Typography variant="body1" align="center" mt={2}>
           Thank you for your booking. Your booking ID is: {bookingId}
+        </Typography>
+        <Typography variant="body1" align="center" mt={2}>
+          Your Booking Amount is: {price}
         </Typography>
         <Typography variant="body1" align="center" mt={2}>
           Your room has been successfully booked. We hope you enjoy your stay!
@@ -48,4 +36,5 @@ const BookingSuccessPage = () => {
 };
 
 export default BookingSuccessPage;
+
 

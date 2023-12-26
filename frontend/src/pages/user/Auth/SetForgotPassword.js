@@ -14,18 +14,17 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import {useState} from 'react';
 import { useForm } from "react-hook-form";
-import instance from '../../utils/Axios';
+import instance from '../../../utils/Axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { baseUrl } from '../../utils/constants';
+import { baseUrl } from '../../../utils/constants';
 import { useSelector } from 'react-redux';
 
 
 const theme = createTheme(); 
-export default function ChangePassword() {
+export default function SetForgotPassword() {
 
   const tokens = useSelector((state) => state.auth.userInfo?.access);
-  const [oldPassword, setOldPassword] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   console.log(confirmPassword,"confpassword");
@@ -40,7 +39,6 @@ export default function ChangePassword() {
   };
   const onSubmit = (event) => {
     const formData = {
-      old_password: oldPassword,
       new_password: password,
       new_password2: confirmPassword
     };
@@ -95,20 +93,7 @@ export default function ChangePassword() {
           <Box component="form"  onSubmit={handleSubmit(onSubmit)} sx={{ mt: 3 }}>
             <Grid container spacing={2}>
 
-            <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  name="password"
-                  label=" Old Password"
-                  type="password"
-                  id="oldpassword"
-                  value={oldPassword}
-                  autoComplete="old-password"
-                  onChange={(e) => {
-                    setOldPassword(e.target.value);
-                        }}
-                />
-              </Grid>
+
               <Grid item xs={12}>
                 <TextField
                   fullWidth

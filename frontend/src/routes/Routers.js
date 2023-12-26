@@ -7,8 +7,6 @@ import RouteAdmin from  '../utils/RouteAdmin'
 import Login from '../pages/user/Auth/Login'
 import Register from '../pages/user/Auth/Register'
 import AdminLogin from '../pages/admin/AdminLogin'
-import GetNumber from '../pages/user/OTP/OtpLogin'
-import CheckOTP from '../pages/user/OTP/OtpVerify'
 import UserManagement from '../pages/admin/UserManagement'
 import Logout from '../pages/user/Auth/Logout'
 import AdminLogout from '../pages/admin/AdminLogout'
@@ -31,18 +29,21 @@ import BookingSuccessPage from '../pages/user/Bookings/BookingSuccessPage'
 import MyBookings from '../pages/user/Profile/MyBookings'
 import CancelMyBooking from '../pages/user/Profile/CancelMyBooking'
 import AvailableRoomsPage from '../pages/user/Bookings/AvailableRoomsPage'
-import Reviews from '../pages/user/Review/Reviews'
+import Reviews from '../pages/user/Review/ReviewForm'
 import ReviewList from '../pages/user/Review/ReviewList'
-import ResetPasswordWrapper from '../pages/user/Auth/ResetPassword'
+
+// import ResetPasswordWrapper from '../pages/user/Auth/ResetPassword'
 import ForgotPassword from '../pages/user/Auth/ForgotPassword'
 import ChatPage from '../pages/Chat/ChatPage'
 import AdminChat from '../pages/Chat/AdminChat'
 
 import BookingReport from '../pages/admin/Booking/BookingReport'
-import ChangePassword from '../pages/user/Auth/ChangePassword'
+import ChangePasswordUser from '../pages/user/Auth/ChangePasswordUser'
 import WalletDetails from '../pages/user/Wallet/WalletDetails'
 import OtpLogin from '../pages/user/OTP/OtpLogin'
 import OtpVerify from '../pages/user/OTP/OtpVerify'
+import SetForgotPassword from '../pages/user/Auth/SetForgotPassword'
+
 
 
 
@@ -65,21 +66,26 @@ const Routers = () => {
       <Route path='/login' element={<Login/>} />
       
       <Route path='/forgot-password' element={<ForgotPassword/>} />
-      <Route path='/change-password' element={<ChangePassword />} />
-      <Route path="/otp-login" element={<OtpLogin/>}/>
+      <Route path='/set-forgot-password' element={<SetForgotPassword/>} />
+
+      <Route path='/change-password' element={<ChangePasswordUser/>} />
+      
+      <Route path="/otp-sent" element={<OtpLogin/>}/>
       <Route path="/otp-verify" element={<OtpVerify/>}/>
       <Route path="/" element={<HomePage/>}/>
       <Route path='' element={<RouteUser/>} >
         
          
         <Route path='/user/user-profile' element={<UserProfile/>} />
+
        
         <Route path='/user/update-profile/:user_id' element={<EditProfile/>} />
+       
         
         <Route path='/logout' element={<Logout/>} />
 
      
-        <Route path='/reset-password-confirm/:uid/:token' element={< ResetPasswordWrapper/>} />
+        {/* <Route path='/reset-password-confirm/:uid/:token' element={< ResetPasswordWrapper/>} /> */}
         
         <Route path='/chat-messages' element={<ChatPage/>} ></Route>
  
@@ -107,13 +113,26 @@ const Routers = () => {
 
         <Route path='/get-available-rooms' element={<AvailableRoomsPage/>} />
         <Route path='/add-roombooking' element={<BookingForm/>} />
-        <Route path='/roombooking-page' element={<BookingPage/>} />
-        <Route path='/booking-success' element={<BookingSuccessPage/>} />
+        <Route path='/roombooking-page/:id' element={<BookingPage/>} />
+        <Route path="/booking-success/:bookingId/:price" element={<BookingSuccessPage/>}/>
+
+        {/* <Route path="/booking-success/:bookingId/:price" element={(props) => (<BookingSuccessPage bookingId={props.bookingId}price={props.price}/>)}/> */}
+  
+  
+    
+      
+      
+    
+  
+
+
+
+
         <Route path='/my-bookings/:user_id' element={<MyBookings/>} />
         <Route path='/booking-report' element={<BookingReport/>} />
 
-        <Route path='/add-review/:roomId' element={<Reviews/>} />
-        <Route path='/reviews' element={<ReviewList/>} />
+        <Route path='/add-review/:room_id' element={<Reviews/>} />
+        <Route path='/room-reviews/:room_id' element={<ReviewList/>} />
         <Route path='/wallet/:userId' element={<WalletDetails/>} />
 
         

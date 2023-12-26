@@ -17,12 +17,16 @@ import {
   MenuItem,
   Button,
 } from '@mui/material';
+import { useLocation } from 'react-router-dom';
 
 import { baseUrl } from '../../../utils/constants';
 
 const BookingsList = () => {
   // const [bookings, setBookings] = useState([]);
   // const bookingData = useSelector((state) => state.booking.bookingInfo);
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const price = queryParams.get('price');
  
   const [roomBookings, setRoomBookings] = useState([]);
 
@@ -91,8 +95,11 @@ const handleCheckout = async () => {
             <TableCell>Booked by</TableCell>
             <TableCell>Check-in</TableCell>
             <TableCell>Check-out</TableCell>
+            <TableCell>Booking Amount</TableCell>
             <TableCell>Booking Status</TableCell>
             <TableCell>Current Status</TableCell>
+          
+
             {/* <TableCell>Room Name</TableCell>
             <TableCell>User Email</TableCell> */}
             {/* <TableCell>Action</TableCell> */}
@@ -107,6 +114,8 @@ const handleCheckout = async () => {
               
               <TableCell>{booking.check_in}</TableCell>
               <TableCell>{booking.check_out}</TableCell>
+              <TableCell>{price}</TableCell>
+
               <TableCell>
         <AdminBookingStatusChange
           bookingId={booking.id}
