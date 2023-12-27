@@ -110,8 +110,8 @@ class UserListView(generics.ListAPIView):
 
     serializer_class = UserSerializer
     def get_queryset(self):
-        # Filter users by the 'guest' role
-        return AccountUser.objects.filter(role='guest')
+        
+        return AccountUser.objects.filter(is_superuser = 'False')
     
 class BlockUnblockUserView(UpdateAPIView):
     serializer_class = UserSerializer
@@ -154,23 +154,7 @@ class UserProfileUpdateView(generics.UpdateAPIView):
     def get_queryset(self):
         return AccountUser.objects.filter(user=self.request.user)
     
-# class UserProfileUpdateView(APIView):
-#     permission_classes = [IsAuthenticated]
 
-#     def get(self, request, *args, **kwargs):
-#         user = self.request.user
-#         serializer = UserProfileSerializer(user)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
-
-#     def put(self, request, *args, **kwargs):
-#         user = self.request.user
-#         serializer = UserProfileSerializer(user, data=request.data, partial=True)
-
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         else:
-#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
 class UserDetailView(RetrieveAPIView):
     serializer_class = UserSerializer
@@ -228,40 +212,8 @@ class UserChangePasswordView(APIView):
         return Response(serializer_class.errors,status=status.HTTP_400_BAD_REQUEST)
 
 
-# class SendPasswordResetEmailView(APIView):
-#   renderer_classes = [AccountUserRenderer]
-#   def post(self, request, format=None):
-#     serializer = SendPasswordResetEmailSerializer(data=request.data)
-#     serializer.is_valid(raise_exception=True)
-#     return Response({'msg':'Password Reset link send. Please check your Email'}, status=status.HTTP_200_OK)
 
-# class PasswordResetConfirmView(APIView):
-#     serializer_class = PasswordResetConfirmSerializer
 
-#     def post(self, request, uidb64, token):
-#         serializer = self.serializer_class(data=request.data)
-
-#         if serializer.is_valid():
-#             try:
-#                 # Decode the uidb64 to get the user's primary key
-#                 user_id = force_str(urlsafe_base64_decode(uidb64))
-#                 user = User.objects.get(pk=user_id)
-
-#                 # Check if the token is valid for the user
-#                 if default_token_generator.check_token(user, token):
-#                     new_password = serializer.validated_data['new_password']
-
-#                     # Set the new password and save the user
-#                     user.set_password(new_password)
-#                     user.save()
-
-#                     return Response({'detail': 'Password successfully reset.'}, status=status.HTTP_200_OK)
-#                 else:
-#                     return Response({'error': 'Invalid token.'}, status=status.HTTP_400_BAD_REQUEST)
-#             except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-#                 return Response({'error': 'Invalid user.'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
 class SendOTP(APIView):
@@ -289,6 +241,66 @@ class VerifyOTP(APIView):
         else:
             return Response({'message': 'OTP verification failed.'}, status=status.HTTP_400_BAD_REQUEST)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# class UserProfileUpdateView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request, *args, **kwargs):
+#         user = self.request.user
+#         serializer = UserProfileSerializer(user)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
+
+#     def put(self, request, *args, **kwargs):
+#         user = self.request.user
+#         serializer = UserProfileSerializer(user, data=request.data, partial=True)
+
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         else:
+#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # class OtpSent(APIView):
 #     # permission_classes=[IsAuthenticated]
@@ -363,7 +375,33 @@ class VerifyOTP(APIView):
 
 
 
+# class PasswordResetConfirmView(APIView):
+#     serializer_class = PasswordResetConfirmSerializer
 
+#     def post(self, request, uidb64, token):
+#         serializer = self.serializer_class(data=request.data)
+
+#         if serializer.is_valid():
+#             try:
+#                 # Decode the uidb64 to get the user's primary key
+#                 user_id = force_str(urlsafe_base64_decode(uidb64))
+#                 user = User.objects.get(pk=user_id)
+
+#                 # Check if the token is valid for the user
+#                 if default_token_generator.check_token(user, token):
+#                     new_password = serializer.validated_data['new_password']
+
+#                     # Set the new password and save the user
+#                     user.set_password(new_password)
+#                     user.save()
+
+#                     return Response({'detail': 'Password successfully reset.'}, status=status.HTTP_200_OK)
+#                 else:
+#                     return Response({'error': 'Invalid token.'}, status=status.HTTP_400_BAD_REQUEST)
+#             except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+#                 return Response({'error': 'Invalid user.'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 

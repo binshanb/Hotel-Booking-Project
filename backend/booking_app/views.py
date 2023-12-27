@@ -28,30 +28,29 @@ from django.db.models import Count
 # # Create your views here.
 
 
-class CategoryListView(generics.ListCreateAPIView):
+class CategoryListView(generics.ListAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
+#User side
 class CustomPageNumberPagination(PageNumberPagination):
     page_size = 4  # Number of items per page
     page_size_query_param = 'page_size'
     max_page_size = 100
-
 class UserCategoryListAPIView(ListAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     pagination_class = CustomPageNumberPagination
 
-class CreateCategoryView(CreateAPIView):
+class CreateCategoryView(generics.CreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
- 
 
     def create(self, request, *args, **kwargs):
-
         # Access data using names
         category_name = request.POST.get('categoryName', '').strip()
         image = request.FILES.get('image', None)
+        print(image,'image........................')
 
         # Check if the category name is unique
         if Category.objects.filter(category_name__iexact=category_name).exists():
@@ -62,41 +61,35 @@ class CreateCategoryView(CreateAPIView):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-    
+
 class EditCategoryView(APIView):
     def put(self, request, category_id, *args, **kwargs):
-        print(request.data,'dataaaaaaaaaaaaaaaaaaaa')
-        updated_category_data = {
-            "category_name": request.data.get("category_name"),
-          
-        }
-
-        img = request.data.get("image")
-        if not isinstance(img,str):
-            updated_category_data["image"]=img
         try:
             category = Category.objects.get(id=category_id)
+         
+            updated_category_data = {
+                "category_name": request.data.get("category_name"),
+                
+            }
+            img =request.data.get("image")
+
+            if not isinstance(img, str): # this check the image path is string or not
+                updated_category_data["image"] = img
+                        
             serializer = CategorySerializer(category, data=updated_category_data, partial=True)
+           
 
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
+                print(serializer.errors)
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         except Category.DoesNotExist:
             return Response({"detail": "Category not found"}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-# class RoomImageListCreateView(generics.ListCreateAPIView):
-#     queryset = RoomImage.objects.all()
-#     serializer_class = RoomImageSerializer
 
-# class RoomImageDetailView(generics.RetrieveUpdateDestroyAPIView):
-#     queryset = RoomImage.objects.all()
-#     serializer_class = RoomImageSerializer
-        
-        
+
 class BlockUnblockCategoryView(UpdateAPIView):
     serializer_class = CategorySerializer
 

@@ -1,9 +1,12 @@
+// EditCategoryModal.js
 import React, { useState, useEffect } from "react";
 import Modal from "react-modal";
 import { FaTimes, FaTrash } from "react-icons/fa";
 import { FcAddImage } from "react-icons/fc";
 import "./AddCategory.css";
 import { toast } from 'react-toastify';
+
+Modal.setAppElement("#root");
 
 export default function EditCategoryModal({
   isOpen,
@@ -73,6 +76,7 @@ export default function EditCategoryModal({
 
     return errors;
   };
+
   const showToast = (message, type = 'error') => {
     toast[type](message, {
       position: toast.POSITION.TOP_RIGHT,
